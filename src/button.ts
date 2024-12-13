@@ -7,11 +7,11 @@ export default class Button extends THREE.Mesh {
   colorTo: THREE.Color;
   defaultColor: THREE.Color;
   geometry: THREE.BufferGeometry;
-  material: THREE.MeshStandardMaterial;
+  material: THREE.MeshToonMaterial;
   v = new THREE.Vector3();
   defaultScale = new THREE.Vector3();
   defaultPosition = new THREE.Vector3();
-  constructor(geometry: THREE.BufferGeometry, material: THREE.MeshStandardMaterial, colorTo: THREE.Color) {
+  constructor(geometry: THREE.BufferGeometry, material: THREE.MeshToonMaterial, colorTo: THREE.Color) {
     super();
     this.material = material;
     this.geometry = geometry;
@@ -36,20 +36,12 @@ export default class Button extends THREE.Mesh {
   }
 
   update(delta: number, clock: THREE.Clock) {
-    //this.rotation.y += delta / 20;
-    //transform.Translate(new Vector3(0, Mathf.Sin(Time.time) * amplitude, 0) * speed * Time.deltaTime);
-    this.position.y = Math.sin(clock.getElapsedTime()) * 0.05 + this.defaultPosition.y;
     this.hovered ? this.material.color.lerp(this.colorTo, delta * 10) : this.material.color.lerp(this.defaultColor, delta * 10);
-    this.clicked
-      ? this.scale.set(
-          this.lerp(this.defaultScale.x, 1.5, delta * 5),
-          this.lerp(this.defaultScale.y, 1.5, delta * 5),
-          this.lerp(this.defaultScale.z, 1.5, delta * 5)
-        )
-      : this.scale.set(
-          this.lerp(this.defaultScale.x, 1.0, delta),
-          this.lerp(this.defaultScale.y, 1.0, delta),
-          this.lerp(this.defaultScale.z, 1.0, delta)
-        );
+    this.clicked ? this.v.set(1.25, 1.25, 1.25) : this.v.set(1.0, 1.0, 1.0);
+    this.scale.lerp(
+      new THREE.Vector3(this.v.x * this.defaultScale.x, this.v.y * this.defaultScale.y, this.v.z * this.defaultScale.z),
+      delta * 5
+    );
+    this.position.y = Math.sin(clock.getElapsedTime()) * 0.05 + this.defaultPosition.y;
   }
 }

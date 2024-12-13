@@ -84,20 +84,18 @@ renderer.domElement.addEventListener("pointerdown", (e) => {
   const intersects = raycaster.intersectObjects(buttons, false);
   raycaster.setFromCamera(mouse, camera);
 
-  //   // toggles `clicked` property for only the Pickable closest to the camera
-  intersects.length && ((intersects[0].object as Button).clicked = !(intersects[0].object as Button).clicked);
-
-  //   // toggles `clicked` property for all overlapping Pickables detected by the raycaster at the same time
-  //   // intersects.forEach((i) => {
-  //   //   (i.object as Button).clicked = !(i.object as Button).clicked;
-  //   // });
-  if (intersects.length) console.log("was clicked" + (intersects[0].object as Button).clicked);
+  // toggles `clicked` property for only the Pickable closest to the camera
+  if (intersects.length) {
+    console.log("was clicked" + (intersects[0].object as Button).clicked);
+    (intersects[0].object as Button).clicked = !(intersects[0].object as Button).clicked;
+    switchPopAnimation();
+  }
 });
 
 // Meshes loading
 new GLTFLoader().load("models/Button_1.glb", (gltf) => {
   const buttonMesh = gltf.scene.getObjectByName("Button") as THREE.Mesh;
-  const button = new Button(buttonMesh.geometry, new THREE.MeshStandardMaterial({ color: 0x888888 }), new THREE.Color(0x0088ff));
+  const button = new Button(buttonMesh.geometry, new THREE.MeshToonMaterial({ color: 0x3f54ff }), new THREE.Color(0x0088ff));
   button.setScale(0.3, 0.3, 0.3);
   button.setPosition(0, 1.5, -0.15);
   console.log(button);
@@ -105,6 +103,14 @@ new GLTFLoader().load("models/Button_1.glb", (gltf) => {
   buttons.push(button);
   scene.add(button);
 });
+
+// Lights
+const light = new THREE.PointLight(0xffffff, 500);
+light.position.set(10, 10, 10);
+scene.add(light);
+
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.25);
+scene.add(ambientLight);
 
 // Animations
 let mixer: THREE.AnimationMixer;
@@ -116,27 +122,43 @@ async function loadPup() {
   const [idle, exitmentIdle] = await Promise.all([
     loader.loadAsync("models/pop_skin_idle_1.glb"),
     loader.loadAsync("models/pop_skin_exitment_idle_1.glb"),
-    loader.loadAsync("models/eve@run.glb"),
   ]);
 
+  const popMesh = idle.scene.getObjectByName("Pop") as THREE.Mesh;
+  const popTexture = new THREE.TextureLoader().load("img/pup_texture_1.png");
+  popTexture.premultiplyAlpha = false;
+  popTexture.magFilter = THREE.NearestFilter;
+  popTexture.minFilter = THREE.NearestFilter;
+  popTexture.flipY = false;
+  const toonMaterial = new THREE.MeshToonMaterial();
+  toonMaterial.map = popTexture;
+  //toonMaterial.color = new THREE.Color(0x3f54ff);
+  popMesh.material = toonMaterial;
   mixer = new THREE.AnimationMixer(idle.scene);
-
-  //mixer.clipAction(idle.animations[2]).play();
-
-  animationActions["idle"] = mixer.clipAction(idle.animations[2]);
+  animationActions["idle"] = mixer.clipAction(idle.animations[1]);
   animationActions["exitmentIdle"] = mixer.clipAction(exitmentIdle.animations[0]);
-
-  // animationActions["exitmentIdle"].play();
-  // activeAction = animationActions["exitmentIdle"];
-
-  animationActions["idle"].play();
   activeAction = animationActions["idle"];
+  activeAction.play();
 
   scene.add(idle.scene);
   idle.scene.scale.multiplyScalar(0.5);
-  console.log(idle);
 }
 await loadPup();
+
+function switchPopAnimation() {
+  if (activeAction != animationActions["exitmentIdle"]) {
+    activeAction.fadeOut(0.5);
+    animationActions["exitmentIdle"].reset().fadeIn(0.25).play();
+    activeAction = animationActions["exitmentIdle"];
+    console.log("exitmentIdle");
+  } else {
+    activeAction.fadeOut(0.5);
+    animationActions["idle"].reset().fadeIn(0.25).play();
+    activeAction = animationActions["idle"];
+    console.log("idle");
+  }
+  activeAction.play();
+}
 
 const clock = new THREE.Clock();
 let delta = 0;

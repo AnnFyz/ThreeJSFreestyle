@@ -98,9 +98,8 @@ renderer.domElement.addEventListener("pointerdown", (e) => {
 new GLTFLoader().load("models/Button_1.glb", (gltf) => {
   const buttonMesh = gltf.scene.getObjectByName("Button") as THREE.Mesh;
   const button = new Button(buttonMesh.geometry, new THREE.MeshStandardMaterial({ color: 0x888888 }), new THREE.Color(0x0088ff));
-  button.position.set(0, 1.5, -0.15);
-
   button.setScale(0.3, 0.3, 0.3);
+  button.setPosition(0, 1.5, -0.15);
   console.log(button);
   // @ts-ignore
   buttons.push(button);
@@ -156,7 +155,7 @@ function animate() {
   stats.update();
 
   buttons.forEach((p) => {
-    p.update(delta);
+    p.update(delta, clock);
   });
 }
 

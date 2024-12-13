@@ -5,7 +5,7 @@ import { RGBELoader } from "three/addons/loaders/RGBELoader.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import Stats from "three/addons/libs/stats.module.js";
 import { GUI } from 'dat.gui'
-import { degToRad } from "three/src/math/MathUtils.js";
+import Button from "./button";
 
 // Scene setup
 const scene = new THREE.Scene();
@@ -41,71 +41,70 @@ const stats = new Stats();
 document.body.appendChild(stats.dom);
 
 // UI
-const gui = new GUI()
+const gui = new GUI();
 
-const cameraFolder = gui.addFolder('Camera')
-cameraFolder.add(camera.position, 'x', -10, 10)
-cameraFolder.add(camera.position, 'y', -10, 10)
-cameraFolder.add(camera.position, 'z', -10, 10)
-cameraFolder.add(camera, 'fov', 0, 180, 0.01).onChange(() => {
-  camera.updateProjectionMatrix()
-})
-cameraFolder.add(camera, 'aspect', 0.00001, 10).onChange(() => {
-  camera.updateProjectionMatrix()
-})
-cameraFolder.add(camera, 'near', 0.01, 10).onChange(() => {
-  camera.updateProjectionMatrix()
-})
-cameraFolder.add(camera, 'far', 0.01, 10).onChange(() => {
-  camera.updateProjectionMatrix()
-})
-cameraFolder.open()
+const cameraFolder = gui.addFolder("Camera");
+cameraFolder.add(camera.position, "x", -10, 10);
+cameraFolder.add(camera.position, "y", -10, 10);
+cameraFolder.add(camera.position, "z", -10, 10);
+cameraFolder.add(camera, "fov", 0, 180, 0.01).onChange(() => {
+  camera.updateProjectionMatrix();
+});
+cameraFolder.add(camera, "aspect", 0.00001, 10).onChange(() => {
+  camera.updateProjectionMatrix();
+});
+cameraFolder.add(camera, "near", 0.01, 10).onChange(() => {
+  camera.updateProjectionMatrix();
+});
+cameraFolder.add(camera, "far", 0.01, 10).onChange(() => {
+  camera.updateProjectionMatrix();
+});
+cameraFolder.open();
 
 // Interactions
 // UI Interactions
 
-const raycaster = new THREE.Raycaster()
-const pickables: THREE.Mesh[] = []
-const mouse = new THREE.Vector2()
+const raycaster = new THREE.Raycaster();
+const pickables: THREE.Mesh[] = [];
+//const pickables: Button[] = [];
+const mouse = new THREE.Vector2();
 
-const arrowHelper = new THREE.ArrowHelper()
-arrowHelper.setLength(0.5)
-scene.add(arrowHelper)
+const arrowHelper = new THREE.Arr(); //owHelper();
+arrowHelper.setLength(0.5);
+scene.add(arrowHelper);
 
-renderer.domElement.addEventListener('mousemove', (e) => {
-  mouse.set((e.clientX / renderer.domElement.clientWidth) * 2 - 1, -(e.clientY / renderer.domElement.clientHeight) * 2 + 1)
-  raycaster.setFromCamera(mouse, camera)
+renderer.domElement.addEventListener("mousemove", (e) => {
+  mouse.set((e.clientX / renderer.domElement.clientWidth) * 2 - 1, -(e.clientY / renderer.domElement.clientHeight) * 2 + 1);
+  raycaster.setFromCamera(mouse, camera);
 
-    const intersects = raycaster.intersectObjects(pickables, false)
-  
-    if (intersects.length) {
-      //console.log(intersects.length)
-      //console.log(intersects[0].point)
-      //console.log(intersects[0].object.name + ' ' + intersects[0].distance)
-      //console.log((intersects[0].face as THREE.Face).normal)
-  
-      const n = new THREE.Vector3()
-      n.copy((intersects[0].face as THREE.Face).normal)
-      //n.transformDirection(intersects[0].object.matrixWorld)
-  
-      arrowHelper.setDirection(n)
-      arrowHelper.position.copy(intersects[0].point)
-    }
-   })
+  const intersects = raycaster.intersectObjects(pickables, false);
+  pickables.forEach((p) => (p.hovered = false));
+  if (intersects.length) {
+    //console.log(intersects.length)
+    //console.log(intersects[0].point)
+    //console.log(intersects[0].object.name + ' ' + intersects[0].distance)
+    //console.log((intersects[0].face as THREE.Face).normal)
 
+    const n = new THREE.Vector3();
+    n.copy((intersects[0].face as THREE.Face).normal);
+    //n.transformDirection(intersects[0].object.matrixWorld)
 
-// Meshes loading 
-new GLTFLoader().load('models/Button_1.glb', (gltf) => {
-  const button = gltf.scene.getObjectByName('Button') as THREE.Mesh
-  button.castShadow = true
-  button.rotation.set(0,0,0);
+    arrowHelper.setDirection(n);
+    arrowHelper.position.copy(intersects[0].point);
+  }
+});
+
+// Meshes loading
+new GLTFLoader().load("models/Button_1.glb", (gltf) => {
+  const buttonMesh = gltf.scene.getObjectByName("Button") as THREE.Mesh;
+  const button = new Button(buttonMesh, new THREE.MeshStandardMaterial({ color: 0x888888 }), new THREE.Color(0x0088ff));
+  button.setPosition(0, 1.5, -0.15);
+  button.setScale(0.3, 0.3, 0.3);
   console.log(button);
-  button.position.set(0,1.5, -0.15);
-  button.scale.set(0.3,0.3,0.3);
   // @ts-ignore
-  pickables.push(button)
-  scene.add(gltf.scene)
-})
+  pickables.push(button);
+  scene.add(gltf.scene);
+});
 
 
 // Animations

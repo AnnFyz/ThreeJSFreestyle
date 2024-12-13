@@ -6,6 +6,8 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import Stats from "three/addons/libs/stats.module.js";
 import { GUI } from 'dat.gui'
 import Button from "./button";
+import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
+import { FontLoader } from "three/addons/loaders/FontLoader.js";
 
 // Scene setup
 const scene = new THREE.Scene();
@@ -91,6 +93,28 @@ renderer.domElement.addEventListener("pointerdown", (e) => {
     switchPopAnimation();
   }
 });
+
+//Text
+let font;
+let geometry;
+const loader = new FontLoader();
+loader.load("fonts/Play_Regular.json", function (font) {
+  geometry = new TextGeometry("Hello three.js!", {
+    font: font,
+    size: 80,
+    depth: 5,
+    curveSegments: 12,
+    bevelEnabled: true,
+    bevelThickness: 10,
+    bevelSize: 8,
+    bevelOffset: 0,
+    bevelSegments: 5,
+  });
+  geometry.computeBoundingBox();
+});
+
+
+
 
 // Meshes loading
 new GLTFLoader().load("models/Button_1.glb", (gltf) => {

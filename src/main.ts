@@ -65,47 +65,47 @@ cameraFolder.open();
 // UI Interactions
 
 const raycaster = new THREE.Raycaster();
-const pickables: THREE.Mesh[] = [];
-//const pickables: Button[] = [];
+const buttons: Button[] = [];
 const mouse = new THREE.Vector2();
 
-const arrowHelper = new THREE.Arr(); //owHelper();
-arrowHelper.setLength(0.5);
-scene.add(arrowHelper);
-
 renderer.domElement.addEventListener("mousemove", (e) => {
+  const intersects = raycaster.intersectObjects(buttons, false);
   mouse.set((e.clientX / renderer.domElement.clientWidth) * 2 - 1, -(e.clientY / renderer.domElement.clientHeight) * 2 + 1);
   raycaster.setFromCamera(mouse, camera);
 
-  const intersects = raycaster.intersectObjects(pickables, false);
-  pickables.forEach((p) => (p.hovered = false));
+  buttons.forEach((p) => (p.hovered = false));
   if (intersects.length) {
-    //console.log(intersects.length)
-    //console.log(intersects[0].point)
-    //console.log(intersects[0].object.name + ' ' + intersects[0].distance)
-    //console.log((intersects[0].face as THREE.Face).normal)
-
-    const n = new THREE.Vector3();
-    n.copy((intersects[0].face as THREE.Face).normal);
-    //n.transformDirection(intersects[0].object.matrixWorld)
-
-    arrowHelper.setDirection(n);
-    arrowHelper.position.copy(intersects[0].point);
+    (intersects[0].object as Button).hovered = true;
   }
+});
+
+renderer.domElement.addEventListener("pointerdown", (e) => {
+  mouse.set((e.clientX / renderer.domElement.clientWidth) * 2 - 1, -(e.clientY / renderer.domElement.clientHeight) * 2 + 1);
+  const intersects = raycaster.intersectObjects(buttons, false);
+  raycaster.setFromCamera(mouse, camera);
+
+  //   // toggles `clicked` property for only the Pickable closest to the camera
+  intersects.length && ((intersects[0].object as Button).clicked = !(intersects[0].object as Button).clicked);
+
+  //   // toggles `clicked` property for all overlapping Pickables detected by the raycaster at the same time
+  //   // intersects.forEach((i) => {
+  //   //   (i.object as Button).clicked = !(i.object as Button).clicked;
+  //   // });
+  if (intersects.length) console.log("was clicked" + (intersects[0].object as Button).clicked);
 });
 
 // Meshes loading
 new GLTFLoader().load("models/Button_1.glb", (gltf) => {
   const buttonMesh = gltf.scene.getObjectByName("Button") as THREE.Mesh;
-  const button = new Button(buttonMesh, new THREE.MeshStandardMaterial({ color: 0x888888 }), new THREE.Color(0x0088ff));
-  button.setPosition(0, 1.5, -0.15);
+  const button = new Button(buttonMesh.geometry, new THREE.MeshStandardMaterial({ color: 0x888888 }), new THREE.Color(0x0088ff));
+  button.position.set(0, 1.5, -0.15);
+
   button.setScale(0.3, 0.3, 0.3);
   console.log(button);
   // @ts-ignore
-  pickables.push(button);
-  scene.add(gltf.scene);
+  buttons.push(button);
+  scene.add(button);
 });
-
 
 // Animations
 let mixer: THREE.AnimationMixer;
@@ -125,7 +125,7 @@ async function loadPup() {
   //mixer.clipAction(idle.animations[2]).play();
 
   animationActions["idle"] = mixer.clipAction(idle.animations[2]);
-  animationActions['exitmentIdle'] = mixer.clipAction(exitmentIdle.animations[0])
+  animationActions["exitmentIdle"] = mixer.clipAction(exitmentIdle.animations[0]);
 
   // animationActions["exitmentIdle"].play();
   // activeAction = animationActions["exitmentIdle"];
@@ -135,12 +135,9 @@ async function loadPup() {
 
   scene.add(idle.scene);
   idle.scene.scale.multiplyScalar(0.5);
-  console.log(idle)
+  console.log(idle);
 }
 await loadPup();
-
-
-
 
 const clock = new THREE.Clock();
 let delta = 0;
@@ -157,6 +154,10 @@ function animate() {
   renderer.render(scene, camera);
 
   stats.update();
+
+  buttons.forEach((p) => {
+    p.update(delta);
+  });
 }
 
 animate();

@@ -191,10 +191,12 @@ let animationActions: { [key: string]: THREE.AnimationAction } = {};
 let activeAction: THREE.AnimationAction;
 
 async function loadPup() {
+  const scalar = 0.5;
   const loader = new GLTFLoader();
-  const [idle, exitmentIdle] = await Promise.all([
-    loader.loadAsync("models/pop_skin_idle_1.glb"),
-    loader.loadAsync("models/pop_skin_exitment_idle_1.glb"),
+  const [idle, jump, landing] = await Promise.all([
+    loader.loadAsync("models/pop_skin_idle.glb"),
+    loader.loadAsync("models/pop_jumping.glb"),
+    loader.loadAsync("models/pop_landing.glb"),
   ]);
 
   const popMesh = idle.scene.getObjectByName("Pop") as THREE.Mesh;
@@ -209,28 +211,40 @@ async function loadPup() {
   popMesh.material = toonMaterial;
   mixer = new THREE.AnimationMixer(idle.scene);
   animationActions["idle"] = mixer.clipAction(idle.animations[1]);
-  animationActions["exitmentIdle"] = mixer.clipAction(exitmentIdle.animations[0]);
-  activeAction = animationActions["idle"];
+  animationActions["jump"] = mixer.clipAction(jump.animations[0]);
+  animationActions["landing"] = mixer.clipAction(landing.animations[0]);
+  activeAction = animationActions["landing"];
   activeAction.play();
+  activeAction.setLoop(THREE.LoopOnce, 1);
+  activeAction.clampWhenFinished = true;
+  mixer.addEventListener("finished", function (e) {
+    activeAction.fadeOut(0.5);
+    animationActions["idle"].reset().fadeIn(0.25).play();
+    activeAction = animationActions["idle"];
+    console.log("idle again");
+  });
 
   scene.add(idle.scene);
-  idle.scene.scale.multiplyScalar(0.5);
+  idle.scene.scale.multiplyScalar(scalar);
+  const plattform = jump.scene.getObjectByName("Plattform") as THREE.Mesh;
+  plattform.scale.multiplyScalar(scalar);
+  plattform.position.set(0, 0, -0.1);
+  scene.add(plattform);
 }
 await loadPup();
 
 function switchPopAnimation() {
-  if (activeAction != animationActions["exitmentIdle"]) {
-    activeAction.fadeOut(0.5);
-    animationActions["exitmentIdle"].reset().fadeIn(0.25).play();
-    activeAction = animationActions["exitmentIdle"];
-    console.log("exitmentIdle");
-  } else {
-    activeAction.fadeOut(0.5);
-    animationActions["idle"].reset().fadeIn(0.25).play();
-    activeAction = animationActions["idle"];
-    console.log("idle");
-  }
-  activeAction.play();
+  // if (activeAction != animationActions["jump"]) {
+  activeAction.fadeOut(0.5);
+  animationActions["jump"].reset().fadeIn(0.25).play();
+  activeAction = animationActions["jump"];
+  activeAction.setLoop(THREE.LoopOnce, 1);
+  // } else {
+  //   activeAction.fadeOut(0.5);
+  //   animationActions["idle"].reset().fadeIn(0.25).play();
+  //   activeAction = animationActions["idle"];
+  // }
+  //activeAction.play();
 }
 
 const clock = new THREE.Clock();

@@ -95,22 +95,35 @@ renderer.domElement.addEventListener("pointerdown", (e) => {
 });
 
 //Text
-let font;
-let geometry;
+let textScale = 0.1;
+let textOffset = 3;
+let textGeo: TextGeometry;
 const loader = new FontLoader();
 loader.load("fonts/Play_Regular.json", function (font) {
-  geometry = new TextGeometry("Hello three.js!", {
+  textGeo = new TextGeometry("Welcome to the magic world \n of the Adventure Pup !", {
     font: font,
-    size: 80,
-    depth: 5,
-    curveSegments: 12,
+    size: 1,
+    height: 0.25,
+    curveSegments: 8,
     bevelEnabled: true,
-    bevelThickness: 10,
-    bevelSize: 8,
+    bevelThickness: 0.125,
+    bevelSize: 0.025,
     bevelOffset: 0,
-    bevelSegments: 5,
+    bevelSegments: 4,
   });
-  geometry.computeBoundingBox();
+  textGeo.computeBoundingBox();
+  const textMesh = new THREE.Mesh(textGeo, new THREE.MeshToonMaterial({ color: 0x3f54ff }));
+  if (textGeo.boundingBox != null) {
+    const centerOffset = -0.5 * (textGeo.boundingBox.max.x - textGeo.boundingBox.min.x) * textScale;
+    textMesh.position.x = centerOffset * textOffset;
+    textMesh.position.y = 2;
+    textMesh.position.z = 0;
+
+    textMesh.rotation.x = 0;
+    textMesh.rotation.y = Math.PI * 0.1;
+    textMesh.scale.set(textScale, textScale, textScale);
+  }
+  scene.add(textMesh);
 });
 
 

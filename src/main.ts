@@ -8,19 +8,36 @@ import { GUI } from 'dat.gui'
 import Button from "./button";
 import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
 import { FontLoader } from "three/addons/loaders/FontLoader.js";
+import { Text } from "troika-three-text";
 
 // Scene setup
 const scene = new THREE.Scene();
 
 const gridHelper = new THREE.GridHelper(100, 100);
+let isGridVisible = {
+  switch: false,
+};
+gridHelper.visible = isGridVisible.switch;
 scene.add(gridHelper);
+const gridGui = new GUI();
+const gridGuiFolder = gridGui
+  .add(isGridVisible, "switch")
+  .name("grid visibility")
+  .onChange(() => {
+    gridHelper.visible = isGridVisible.switch;
+  });
 
-new RGBELoader().load("img/venice_sunset_1k.hdr", (texture) => {
-  texture.mapping = THREE.EquirectangularReflectionMapping;
-  scene.environment = texture;
-  scene.background = texture;
-  scene.backgroundBlurriness = 1;
-});
+// new RGBELoader().load("img/venice_sunset_1k.hdr", (texture) => {
+//   texture.mapping = THREE.EquirectangularReflectionMapping;
+//   scene.environment = texture;
+//   scene.background = texture;
+//   scene.backgroundBlurriness = 1;
+// });
+
+//const environmentTexture = new THREE.CubeTextureLoader().load(["img/Background_1.png"]);
+const environmentTexture = new THREE.TextureLoader().load("img/Background_1.png");
+scene.environment = environmentTexture;
+scene.background = environmentTexture;
 
 const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 100);
 camera.position.set(0.1, 2, 6);
@@ -44,8 +61,13 @@ document.body.appendChild(stats.dom);
 
 // UI
 const gui = new GUI();
-
 const cameraFolder = gui.addFolder("Camera");
+cameraFolder
+  .add(isGridVisible, "switch")
+  .name("grid visibility")
+  .onChange(() => {
+    gridHelper.visible = isGridVisible.switch;
+  });
 cameraFolder.add(camera.position, "x", -10, 10);
 cameraFolder.add(camera.position, "y", -10, 10);
 cameraFolder.add(camera.position, "z", -10, 10);
@@ -60,8 +82,9 @@ cameraFolder.add(camera, "near", 0.01, 10).onChange(() => {
 });
 cameraFolder.add(camera, "far", 0.01, 10).onChange(() => {
   camera.updateProjectionMatrix();
-});
-cameraFolder.open();
+}); //gridHelper.visible
+
+//cameraFolder.open();
 
 // Interactions
 // UI Interactions
@@ -93,6 +116,22 @@ renderer.domElement.addEventListener("pointerdown", (e) => {
     switchPopAnimation();
   }
 });
+
+// Troika text
+const troikaText = new Text();
+scene.add(troikaText);
+
+// Set properties to configure:
+troikaText.text =
+  "The puppy's mother was kidnapped\n by an evil cat wizard,\n your task is to help the puppy on his way\n to find his mother";
+troikaText.fontSize = 0.1;
+troikaText.font = "public/fonts/Lato/Lato-Italic.ttf";
+troikaText.position.set(1, 0.2, 0);
+troikaText.rotation.y = -Math.PI * 0.1;
+troikaText.color = 0xffffff;
+
+// Update the rendering:
+troikaText.sync();
 
 //Text
 let textScale = 0.1;
@@ -126,15 +165,12 @@ loader.load("fonts/Play_Regular.json", function (font) {
   scene.add(textMesh);
 });
 
-
-
-
 // Meshes loading
 new GLTFLoader().load("models/Button_1.glb", (gltf) => {
   const buttonMesh = gltf.scene.getObjectByName("Button") as THREE.Mesh;
   const button = new Button(buttonMesh.geometry, new THREE.MeshToonMaterial({ color: 0x3f54ff }), new THREE.Color(0x0088ff));
   button.setScale(0.3, 0.3, 0.3);
-  button.setPosition(0, 1.5, -0.15);
+  button.setPosition(-1, 1, -0.15);
   console.log(button);
   // @ts-ignore
   buttons.push(button);

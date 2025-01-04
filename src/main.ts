@@ -8,45 +8,21 @@ import { GUI } from 'dat.gui'
 import Button from "./button";
 import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
 import { FontLoader } from "three/addons/loaders/FontLoader.js";
-//import { Text } from "*./troika-three-text";
-
 import { Text } from "troika-three-text";
-
-// Scene setup
-const scene = new THREE.Scene();
-
-const gridHelper = new THREE.GridHelper(100, 100);
-let isGridVisible = {
-  switch: false,
-};
-gridHelper.visible = isGridVisible.switch;
-scene.add(gridHelper);
-//const gridGui = new GUI();
-// const gridGuiFolder = gridGui
-//   .add(isGridVisible, "switch")
-//   .name("grid visibility")
-//   .onChange(() => {
-//     gridHelper.visible = isGridVisible.switch;
-//   });
-
-// new RGBELoader().load("img/venice_sunset_1k.hdr", (texture) => {
-//   texture.mapping = THREE.EquirectangularReflectionMapping;
-//   scene.environment = texture;
-//   scene.background = texture;
-//   scene.backgroundBlurriness = 1;
-// });
-
-//const environmentTexture = new THREE.CubeTextureLoader().load(["img/Background_1.png"]);
-const environmentTexture = new THREE.TextureLoader().load("img/Background_1.png");
-scene.environment = environmentTexture;
-scene.background = environmentTexture;
+import Scene_0 from "./scene_0";
+import Scene_1 from "./scene_1";
 
 const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 100);
 camera.position.set(0.1, 2, 6);
-
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
+const raycaster = new THREE.Raycaster();
+const buttons: Button[] = [];
+const mouse = new THREE.Vector2();
+
+// Scene setup
+let activeScene = new Scene_0(camera, renderer, raycaster);
 
 window.addEventListener("resize", () => {
   camera.aspect = window.innerWidth / window.innerHeight;
@@ -61,39 +37,8 @@ controls.target.set(0, 0.75, 0);
 const stats = new Stats();
 document.body.appendChild(stats.dom);
 
-// UI
-const gui = new GUI();
-const cameraFolder = gui.addFolder("Camera");
-cameraFolder
-  .add(isGridVisible, "switch")
-  .name("grid visibility")
-  .onChange(() => {
-    gridHelper.visible = isGridVisible.switch;
-  });
-cameraFolder.add(camera.position, "x", -10, 10);
-cameraFolder.add(camera.position, "y", -10, 10);
-cameraFolder.add(camera.position, "z", -10, 10);
-cameraFolder.add(camera, "fov", 0, 180, 0.01).onChange(() => {
-  camera.updateProjectionMatrix();
-});
-cameraFolder.add(camera, "aspect", 0.00001, 10).onChange(() => {
-  camera.updateProjectionMatrix();
-});
-cameraFolder.add(camera, "near", 0.01, 10).onChange(() => {
-  camera.updateProjectionMatrix();
-});
-cameraFolder.add(camera, "far", 0.01, 10).onChange(() => {
-  camera.updateProjectionMatrix();
-}); //gridHelper.visible
-
-//cameraFolder.open();
-
 // Interactions
 // UI Interactions
-
-const raycaster = new THREE.Raycaster();
-const buttons: Button[] = [];
-const mouse = new THREE.Vector2();
 
 renderer.domElement.addEventListener("mousemove", (e) => {
   const intersects = raycaster.intersectObjects(buttons, false);
@@ -121,7 +66,7 @@ renderer.domElement.addEventListener("pointerdown", (e) => {
 
 // Troika text
 const troikaText = new Text();
-scene.add(troikaText);
+activeScene.add(troikaText);
 
 // Set properties to configure:
 troikaText.text =
@@ -164,7 +109,7 @@ loader.load("fonts/Play_Regular.json", function (font) {
     textMesh.rotation.y = Math.PI * 0.1;
     textMesh.scale.set(textScale, textScale, textScale);
   }
-  scene.add(textMesh);
+  activeScene.add(textMesh);
 });
 
 // Meshes loading
@@ -176,16 +121,16 @@ new GLTFLoader().load("models/Button_1.glb", (gltf) => {
   console.log(button);
   // @ts-ignore
   buttons.push(button);
-  scene.add(button);
+  activeScene.add(button);
 });
 
 // Lights
 const light = new THREE.PointLight(0xffffff, 500);
 light.position.set(10, 10, 10);
-scene.add(light);
+activeScene.add(light);
 
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.25);
-scene.add(ambientLight);
+activeScene.add(ambientLight);
 
 // Animations
 let mixer: THREE.AnimationMixer;
@@ -226,12 +171,12 @@ async function loadPup() {
     console.log("idle again");
   });
 
-  scene.add(idle.scene);
+  activeScene.add(idle.scene);
   idle.scene.scale.multiplyScalar(scalar);
   const plattform = jump.scene.getObjectByName("Plattform") as THREE.Mesh;
   plattform.scale.multiplyScalar(scalar);
   plattform.position.set(0, 0, -0.1);
-  scene.add(plattform);
+  activeScene.add(plattform);
 }
 await loadPup();
 
@@ -261,7 +206,7 @@ function animate() {
 
   mixer.update(delta);
 
-  renderer.render(scene, camera);
+  renderer.render(activeScene, camera);
 
   stats.update();
 

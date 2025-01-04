@@ -1,13 +1,15 @@
 import "./style.css";
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import { RGBELoader } from "three/addons/loaders/RGBELoader.js";
+//import { RGBELoader } from "three/addons/loaders/RGBELoader.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import Stats from "three/addons/libs/stats.module.js";
 import { GUI } from 'dat.gui'
 import Button from "./button";
 import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
 import { FontLoader } from "three/addons/loaders/FontLoader.js";
+//import { Text } from "*./troika-three-text";
+
 import { Text } from "troika-three-text";
 
 // Scene setup
@@ -19,13 +21,13 @@ let isGridVisible = {
 };
 gridHelper.visible = isGridVisible.switch;
 scene.add(gridHelper);
-const gridGui = new GUI();
-const gridGuiFolder = gridGui
-  .add(isGridVisible, "switch")
-  .name("grid visibility")
-  .onChange(() => {
-    gridHelper.visible = isGridVisible.switch;
-  });
+//const gridGui = new GUI();
+// const gridGuiFolder = gridGui
+//   .add(isGridVisible, "switch")
+//   .name("grid visibility")
+//   .onChange(() => {
+//     gridHelper.visible = isGridVisible.switch;
+//   });
 
 // new RGBELoader().load("img/venice_sunset_1k.hdr", (texture) => {
 //   texture.mapping = THREE.EquirectangularReflectionMapping;
@@ -217,7 +219,7 @@ async function loadPup() {
   activeAction.play();
   activeAction.setLoop(THREE.LoopOnce, 1);
   activeAction.clampWhenFinished = true;
-  mixer.addEventListener("finished", function (e) {
+  mixer.addEventListener("finished", function () {
     activeAction.fadeOut(0.5);
     animationActions["idle"].reset().fadeIn(0.25).play();
     activeAction = animationActions["idle"];

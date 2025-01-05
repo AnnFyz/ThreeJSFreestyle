@@ -1,14 +1,10 @@
 import "./style.css";
 import * as THREE from "three";
-import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-//import { RGBELoader } from "three/addons/loaders/RGBELoader.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
-import Stats from "three/addons/libs/stats.module.js";
 import { GUI } from "dat.gui";
 import Button from "./button";
 import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
 import { FontLoader } from "three/addons/loaders/FontLoader.js";
-import { Text } from "troika-three-text";
 
 export default class Scene_1 extends THREE.Scene {
   camera: THREE.PerspectiveCamera;
@@ -35,7 +31,7 @@ export default class Scene_1 extends THREE.Scene {
 
     const gridHelper = new THREE.GridHelper(100, 100);
     let isGridVisible = {
-      switch: true,
+      switch: false,
     };
     gridHelper.visible = isGridVisible.switch;
     this.add(gridHelper);
@@ -65,7 +61,7 @@ export default class Scene_1 extends THREE.Scene {
       this.camera.updateProjectionMatrix();
     });
 
-    cameraFolder.open();
+    //cameraFolder.open();
   }
 
   createBackground() {
@@ -81,9 +77,6 @@ export default class Scene_1 extends THREE.Scene {
 
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.25);
     this.add(ambientLight);
-
-    const clock = new THREE.Clock();
-    let delta = 0;
   }
 
   createTextMesh() {

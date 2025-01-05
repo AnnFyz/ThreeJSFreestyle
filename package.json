@@ -18,6 +18,7 @@
     "vite-plugin-top-level-await": "^1.4.4"
   },
   "dependencies": {
+    "troika-3d": "^0.52.0",
     "troika-three-text": "^0.52.3"
   }
 }

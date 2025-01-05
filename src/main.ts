@@ -3,7 +3,7 @@ import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import Stats from "three/addons/libs/stats.module.js";
 import Scene_0 from "./scene_0";
-//import Scene_1 from "./scene_1";
+import Scene_1 from "./scene_1";
 
 const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 100);
 camera.position.set(0.1, 2, 6);
@@ -14,7 +14,7 @@ const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 
 // Scene setup
-let activeScene = new Scene_0(camera, renderer, raycaster, mouse);
+let activeScene = new Scene_1(camera, renderer, raycaster, mouse);
 await activeScene.loadAssync();
 
 window.addEventListener("resize", () => {

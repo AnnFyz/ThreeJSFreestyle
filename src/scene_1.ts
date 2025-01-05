@@ -24,6 +24,7 @@ export default class Scene_1 extends THREE.Scene {
     this.createGridCameraUI();
     this.createBackground();
     this.createLight();
+    this.createButton();
   }
 
   createGridCameraUI() {
@@ -35,6 +36,10 @@ export default class Scene_1 extends THREE.Scene {
     };
     gridHelper.visible = isGridVisible.switch;
     this.add(gridHelper);
+
+    const axesHelper = new THREE.AxesHelper( 5 );
+    this.add( axesHelper );
+    axesHelper.visible = false;
 
     // UI
     const gui = new GUI();
@@ -65,7 +70,7 @@ export default class Scene_1 extends THREE.Scene {
   }
 
   createBackground() {
-    const environmentTexture = new THREE.TextureLoader().load("img/Background_1.png");
+    const environmentTexture = new THREE.TextureLoader().load("scene_1/img/Background_scene_1.psd.png");
     this.environment = environmentTexture;
     this.background = environmentTexture;
   }
@@ -115,11 +120,24 @@ export default class Scene_1 extends THREE.Scene {
   }
 
   createButton() {
-    new GLTFLoader().load("models/Button_1.glb", (gltf) => {
-      const buttonMesh = gltf.scene.getObjectByName("Button") as THREE.Mesh;
-      const button = new Button(buttonMesh.geometry, new THREE.MeshToonMaterial({ color: 0x3f54ff }), new THREE.Color(0x0088ff));
-      button.setScale(0.3, 0.3, 0.3);
-      button.setPosition(-1, 1, -0.15);
+    const platformTexture = new THREE.TextureLoader().load(
+      "scene_1/img/platform_1/Platform_Dynamic_1_2_blend_Material.001_AlbedoTransparency.png"
+    );
+    platformTexture.premultiplyAlpha = false;
+    platformTexture.magFilter = THREE.NearestFilter;
+    platformTexture.minFilter = THREE.NearestFilter;
+    platformTexture.flipY = false;
+
+    new GLTFLoader().load("scene_1/models/Platforms.glb", (gltf) => {
+      const buttonMesh = gltf.scene.getObjectByName("platform_1") as THREE.Mesh;
+      const button = new Button(
+        buttonMesh.geometry,
+        new THREE.MeshToonMaterial({ color: 0xffffff }),
+        new THREE.Color(0x000000),
+        platformTexture
+      );
+      button.setScale(1, 1, 1);
+      //button.setPosition(-1, 1, -0.15);
       console.log(button);
       // @ts-ignore
       this.buttons.push(button);

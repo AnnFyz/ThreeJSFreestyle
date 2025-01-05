@@ -8,16 +8,24 @@ export default class Button extends THREE.Mesh {
   defaultColor: THREE.Color;
   geometry: THREE.BufferGeometry;
   material: THREE.MeshToonMaterial;
+  texture: THREE.Texture;
   v = new THREE.Vector3();
   defaultScale = new THREE.Vector3();
   defaultPosition = new THREE.Vector3();
-  constructor(geometry: THREE.BufferGeometry, material: THREE.MeshToonMaterial, colorTo: THREE.Color) {
+  constructor(
+    geometry: THREE.BufferGeometry,
+    material: THREE.MeshToonMaterial,
+    colorTo: THREE.Color,
+    texture = THREE.Texture.DEFAULT_IMAGE
+  ) {
     super();
     this.material = material;
     this.geometry = geometry;
     this.colorTo = colorTo;
     this.defaultColor = material.color.clone();
     this.castShadow = true;
+    this.texture = texture;
+    this.material.map = this.texture;
   }
 
   lerp(from: number, to: number, speed: number) {

@@ -1,11 +1,12 @@
-body {
-  overflow: hidden;
+ body {
+  overflow: hidden; 
   margin: 0px;
-}
+  background: transparent;
+} 
 
 .label {
   position: absolute;
-  color: #ffffff;
+  /* color: #ffffff; */
   font-family: monospace;
   pointer-events: none;
   text-align: center;
@@ -13,5 +14,53 @@ body {
   height: 25px;
   font-size: 1vw;
   filter: drop-shadow(2px 2px 1px #000000);
+  /* display: none; */
+  background: transparent;
+}
+
+.intro {
+  position: absolute;
+  top: 30%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 12%;
+  font-family: "Open Sans", sans-serif;
+  font-size: 16px;
+  letter-spacing: 2px;
+  text-decoration: none;
+  text-transform: uppercase;
+  text-align: center;
+  color: #000;
+  cursor: pointer;
+  /* border: 3px solid;  */
+  padding: 0.25em 0.5em;
+  /* box-shadow: 1px 1px 0px 0px, 2px 2px 0px 0px, 3px 3px 0px 0px, 4px 4px 0px 0px, 5px 5px 0px 0px; */
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  background: transparent;
+}
+
+.hidden{
   display: none;
+}
+.container {
+  position: absolute;
+  display: flex;
+  /* flex-wrap: wrap; */
+  justify-content: space-evenly;
+  align-items: center;
+  font-family: "Open Sans", sans-serif;
+  height: 100%;
+  flex-wrap: wrap;
+  align-content: center; 
+  gap: 10;
+  text-decoration: none;
+  border: solid blue 4px;
+
+  background: transparent 50%;
+
+}
+.item {
+  flex: 0 0 auto;
 }

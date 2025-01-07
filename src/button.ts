@@ -66,7 +66,7 @@ export default class Button extends THREE.Mesh {
       delta * 5
     );
 
-    this.position.y = Math.sin(clock.getElapsedTime()) * 0.05 + this.defaultPosition.y;
-    this.wireframe.position.y = Math.sin(clock.getElapsedTime()) * 0.05 + this.defaultPosition.y;
+    //this.position.y = Math.sin(clock.getElapsedTime()) * 0.05 + this.defaultPosition.y;
+    //this.wireframe.position.y = Math.sin(clock.getElapsedTime()) * 0.05 + this.defaultPosition.y;
   }
 }

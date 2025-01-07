@@ -103,6 +103,7 @@ function animate() {
   stats.update();
 
   composer.render();
+
 }
 
 animate();

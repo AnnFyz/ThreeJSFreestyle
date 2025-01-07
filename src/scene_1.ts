@@ -17,7 +17,7 @@ import { FXAAShader } from "three/examples/jsm/shaders/FXAAShader.js";
 import { RGBShiftShader } from 'three/addons/shaders/RGBShiftShader.js';
 import { DotScreenShader } from 'three/addons/shaders/DotScreenShader.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-
+import { glsl } from "three/webgpu";
 
 export default class Scene_1 extends THREE.Scene {
   camera: THREE.PerspectiveCamera;
@@ -31,14 +31,29 @@ export default class Scene_1 extends THREE.Scene {
   mixer = new THREE.AnimationMixer(this);
   animationActions: { [key: string]: THREE.AnimationAction } = {};
   activeAction: THREE.AnimationAction = this.animationActions[""];
+  idleScene: THREE.Group<THREE.Object3DEventMap>;
+  idleLoop = this.OnFinishedAnimation.bind(this);
 
   //shader effect
-  composer : EffectComposer;
-  renderPass : RenderPass;
+  composer: EffectComposer;
+  renderPass: RenderPass;
   outlinePass: OutlinePass;
-  effectFXAA: ShaderPass;
+  effectFXAA = new ShaderPass(FXAAShader);
 
-  constructor(camera: THREE.PerspectiveCamera, renderer: THREE.Renderer, raycaster: THREE.Raycaster, mouse: THREE.Vector2, composer : EffectComposer) {
+  mouseClickEvent = {
+    FirstClickEvent: "FirstClickEvent",
+    SecondClickEvent: "SecondClickEvent",
+    None: "None",
+  };
+
+  currentMouseClickEvent = this.mouseClickEvent.FirstClickEvent;
+  constructor(
+    camera: THREE.PerspectiveCamera,
+    renderer: THREE.Renderer,
+    raycaster: THREE.Raycaster,
+    mouse: THREE.Vector2,
+    composer: EffectComposer
+  ) {
     super();
     this.camera = camera;
     this.renderer = renderer;
@@ -49,37 +64,26 @@ export default class Scene_1 extends THREE.Scene {
     this.createButton();
 
     //light
-    this.ambientLight = new THREE.AmbientLight(0xffffff, 4);
+    this.ambientLight = new THREE.AmbientLight(0xffffff, 2);
     this.add(this.ambientLight);
+
+    const light = new THREE.PointLight(0xffffff, 500);
+    light.position.set(10, 10, 10);
+    this.add(light);
 
     //outline
     this.composer = composer;
-    this.renderPass = new RenderPass( this, this.camera );
-    this.composer.addPass( this.renderPass );
-    this.outlinePass= new OutlinePass(
-          new THREE.Vector2(window.innerWidth, window.innerHeight), //resolution parameter
-          this,
-          camera);
-          // -- parameter config
-          this.outlinePass.edgeStrength = 3.0;
-          this.outlinePass.edgeGlow = 0;
-          this.outlinePass.edgeThickness = 3.0;
-    this.outlinePass.pulsePeriod = 0;
-    this.outlinePass.usePatternTexture = false; // patter texture for an object mesh
-    this.outlinePass.visibleEdgeColor.set("#ffffff"); // set basic edge color
-    this.outlinePass.hiddenEdgeColor.set("#1abaff"); // set edge color when it hidden by other object
-    composer.addPass(this.outlinePass);
-
-    //shader
-    this.effectFXAA = new ShaderPass(FXAAShader);
-    this.effectFXAA.uniforms["resolution"].value.set(
-      1 / window.innerWidth,
-      1 / window.innerHeight
+    this.renderPass = new RenderPass(this, this.camera);
+    this.outlinePass = new OutlinePass(
+      new THREE.Vector2(window.innerWidth, window.innerHeight), //resolution parameter
+      this,
+      this.camera
     );
-    this.effectFXAA.renderToScreen = true;
-    composer.addPass(this.effectFXAA);
-    
-  
+    this.effectFXAA.uniforms["resolution"].value.set(1 / window.innerWidth, 1 / window.innerHeight);
+    this.createOutlines();
+
+    //animation
+    this.idleScene = new THREE.Group<THREE.Object3DEventMap>();
   }
 
   createGridCameraUI() {
@@ -131,8 +135,24 @@ export default class Scene_1 extends THREE.Scene {
     this.background = environmentTexture;
   }
 
-  setLightIntensity(intensity : number) {
-  this.ambientLight.intensity = intensity;
+  createOutlines() {
+    this.composer.addPass(this.renderPass);
+    // -- parameter config
+    this.outlinePass.edgeStrength = 3.0;
+    this.outlinePass.edgeGlow = 0;
+    this.outlinePass.edgeThickness = 3.0;
+    this.outlinePass.pulsePeriod = 0;
+    this.outlinePass.usePatternTexture = false; // patter texture for an object mesh
+    this.outlinePass.visibleEdgeColor.set("#ffffff"); // set basic edge color
+    //this.outlinePass.hiddenEdgeColor.set("#1abaff"); // set edge color when it hidden by other object
+    this.composer.addPass(this.outlinePass);
+
+    this.effectFXAA.renderToScreen = true;
+    this.composer.addPass(this.effectFXAA);
+  }
+
+  setLightIntensity(intensity: number) {
+    this.ambientLight.intensity = intensity;
   }
 
   createTextMesh() {
@@ -171,9 +191,7 @@ export default class Scene_1 extends THREE.Scene {
   }
 
   createButton() {
-    const platformTexture = new THREE.TextureLoader().load(
-      "scene_1/img/Platform_1_3.png"
-    );
+    const platformTexture = new THREE.TextureLoader().load("scene_1/img/Platform_1_3.png");
     platformTexture.premultiplyAlpha = false;
     platformTexture.magFilter = THREE.NearestFilter;
     platformTexture.minFilter = THREE.NearestFilter;
@@ -185,7 +203,7 @@ export default class Scene_1 extends THREE.Scene {
       const buttonMesh = gltf.scene.getObjectByName("platform_1") as THREE.Mesh;
       const button = new Button(
         buttonMesh.geometry,
-        new THREE.MeshToonMaterial({ color: 0xffffff}),
+        new THREE.MeshToonMaterial({ color: 0xffffff }),
         new THREE.Color(0xeeeeee),
         platformTexture
       );
@@ -198,7 +216,6 @@ export default class Scene_1 extends THREE.Scene {
       this.add(button.wireframe);
     });
 
-
     this.renderer.domElement.addEventListener("mousemove", (e) => {
       const intersects = this.raycaster.intersectObjects(this.buttons, false);
       this.mouse.set(
@@ -207,10 +224,15 @@ export default class Scene_1 extends THREE.Scene {
       );
       this.raycaster.setFromCamera(this.mouse, this.camera);
 
-      this.buttons.forEach((p) => {(p.hovered = false); this.outlinePass.selectedObjects = [];} );
+      this.buttons.forEach((p) => {
+        p.hovered = false;
+        this.outlinePass.selectedObjects = [];
+        document.querySelector(".intro")?.classList.remove("highlighted");
+      });
       if (intersects.length) {
         (intersects[0].object as Button).hovered = true;
-         this.outlinePass.selectedObjects[0] = intersects[0].object;
+        this.outlinePass.selectedObjects[0] = intersects[0].object;
+        document.querySelector(".intro")?.classList.add("highlighted");
       }
     });
 
@@ -226,14 +248,127 @@ export default class Scene_1 extends THREE.Scene {
       if (intersects.length) {
         console.log("was clicked" + (intersects[0].object as Button).clicked);
         (intersects[0].object as Button).clicked = !(intersects[0].object as Button).clicked;
-        document.querySelector(".intro")?.classList.add('hidden');
-        //this.switchPopAnimation();
+        document.querySelector(".intro")?.classList.add("hidden");
+        if (this.currentMouseClickEvent == this.mouseClickEvent.FirstClickEvent) {
+          this.startPopAnimation();
+          this.currentMouseClickEvent = this.mouseClickEvent.SecondClickEvent;
+        } else if (this.currentMouseClickEvent == this.mouseClickEvent.SecondClickEvent) {
+          this.switchPopAnimation();
+          this.currentMouseClickEvent = this.mouseClickEvent.None;
+        }
       }
     });
   }
 
+  //outline
+  solidify = (mesh: THREE.Mesh) => {
+    const geometry = mesh.geometry;
+    const material = new THREE.ShaderMaterial({
+      vertexShader: /* glsl */ `
+      void main() { 
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+      fragmentShader: /* glsl */ `
+      void main() { 
+        gl_FragColor = vec4(1,0,0,1);
+      }
+    `,
+    });
+
+    const outline = new THREE.Mesh(geometry, material);
+    this.add(outline);
+  };
+
+  vertexShader() {
+    return `
+      varying vec3 vUv; 
+  
+      void main() {
+        vUv = position; 
+  
+        vec4 modelViewPosition = modelViewMatrix * vec4(position, 1.0);
+        gl_Position = projectionMatrix * modelViewPosition; 
+      }
+    `;
+  }
+  fragmentShader() {
+    return `
+    uniform vec3 colorA; 
+    uniform vec3 colorB; 
+    varying vec3 vUv;
+
+    void main() {
+      gl_FragColor = vec4(mix(colorA, colorB, vUv.z), 1.0);
+    }
+`;
+  }
   // loading pop model and animations
-  async loadAssync() {}
+  async loadAssync() {
+    const scalar = 0.5;
+    const loader = new GLTFLoader();
+    const [idle, jump, landing] = await Promise.all([
+      loader.loadAsync("models/pop_skin_idle.glb"),
+      loader.loadAsync("models/pop_jumping.glb"),
+      loader.loadAsync("scene_1/models/FallinPopAnimation_3.glb"),
+    ]);
+
+    this.idleScene = idle.scene;
+    const popMesh = idle.scene.getObjectByName("Pop") as THREE.Mesh;
+    // mesh texture
+    const popTexture = new THREE.TextureLoader().load("scene_1/img/VintagePupTex_5.png");
+    //const gradientTexture = new THREE.TextureLoader().load("scene_1/img/VintagePupTex_6.png");
+    popTexture.premultiplyAlpha = false;
+    popTexture.flipY = false;
+    popTexture.minFilter = THREE.NearestFilter;
+    popTexture.magFilter = THREE.NearestFilter;
+
+    // mesh material
+    const toonMaterial = new THREE.MeshToonMaterial(); //{ color: 0xfffff }
+    toonMaterial.map = popTexture;
+    //toonMaterial.gradientMap = popTexture;
+    popMesh.material = toonMaterial;
+    //popMesh.material.colorWrite = false;
+    // popMesh.material.polygonOffset = true;
+    // popMesh.material.polygonOffsetFactor = 1;
+    // popMesh.material.polygonOffsetUnits = 1;
+
+    // mesh animation
+    this.mixer = new THREE.AnimationMixer(idle.scene);
+    this.animationActions["idle"] = this.mixer.clipAction(idle.animations[1]);
+    this.animationActions["jump"] = this.mixer.clipAction(jump.animations[0]);
+    this.animationActions["landing"] = this.mixer.clipAction(landing.animations[0]);
+    this.activeAction = this.animationActions["landing"];
+
+    this.idleScene.scale.multiplyScalar(scalar);
+    this.idleScene.position.set(0, 0.2, 0);
+  }
+
+  startPopAnimation() {
+    this.add(this.idleScene);
+    const outline = this.solidify(this.idleScene.getObjectByName("Pop") as THREE.Mesh);
+    //
+    this.activeAction.play();
+    this.activeAction.setLoop(THREE.LoopOnce, 1);
+    this.activeAction.clampWhenFinished = true;
+    this.mixer.addEventListener("finished", this.idleLoop);
+  }
+
+  switchPopAnimation() {
+    this.mixer.removeEventListener("finished", this.idleLoop);
+    this.activeAction.fadeOut(0.5);
+    this.animationActions["jump"].reset().fadeIn(0.25).play();
+    this.activeAction = this.animationActions["jump"];
+    this.activeAction.setLoop(THREE.LoopOnce, 1);
+    this.activeAction.clampWhenFinished = true;
+  }
+
+  OnFinishedAnimation() {
+    this.activeAction.fadeOut(1);
+    this.animationActions["idle"].reset().fadeIn(0.25).play();
+    this.activeAction = this.animationActions["idle"];
+    console.log("idle again");
+  }
 
   // update loop
   animate(delta: number, clock: THREE.Clock) {

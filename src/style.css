@@ -2,88 +2,124 @@
   overflow: hidden; 
   margin: 0px;
   background: transparent;
+  position: relative;
 } 
 
-.label {
-  position: absolute;
-  /* color: #ffffff; */
-  font-family: monospace;
-  pointer-events: none;
-  text-align: center;
-  width: 75px;
-  height: 25px;
-  font-size: 1vw;
-  filter: drop-shadow(2px 2px 1px #000000);
-  /* display: none; */
-  background: transparent;
-}
 
 .intro {
   position: absolute;
+  margin-left: auto;
+  margin-right: auto;
+  /* margin-top: auto;
+  margin-bottom: auto; */
+  left: 0;
+  right: 0;
   top: 30%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 12%;
+  /* bottom:0;  */
+  width:12%;
   font-family: "Open Sans", sans-serif;
   font-size: 16px;
   letter-spacing: 2px;
   text-decoration: none;
-  /* text-transform: uppercase; */
+  text-transform: lowercase;
   text-align: center;
-  color: white;
-  cursor: pointer;
-  /* border: 3px solid;  */
+  color: black;
   padding: 0.25em 0.5em;
-  /* box-shadow: 1px 1px 0px 0px, 2px 2px 0px 0px, 3px 3px 0px 0px, 4px 4px 0px 0px, 5px 5px 0px 0px; */
-  user-select: none;
-  -webkit-user-select: none;
-  touch-action: manipulation;
-  background: transparent;
 }
 
 .highlighted {
-  position: absolute;
-  top: 30%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 12%;
-  font-family: "Open Sans", serif;
-  font-size: 16px;
-  letter-spacing: 2px;
-  text-decoration: none;
-  text-transform: uppercase;
-  text-align: center;
-  color: black;
-  cursor: pointer;
-  /* border: 3px solid;  */
-  padding: 0.25em 0.5em;
-  /* box-shadow: 1px 1px 0px 0px, 2px 2px 0px 0px, 3px 3px 0px 0px, 4px 4px 0px 0px, 5px 5px 0px 0px; */
-  user-select: none;
-  -webkit-user-select: none;
-  touch-action: manipulation;
-  background: transparent;
+
 }
 
 .hidden{
   display: none;
 }
-.container {
-  position: absolute;
-  display: flex;
-  /* flex-wrap: wrap; */
-  justify-content: space-evenly;
-  align-items: center;
-  font-family: "Open Sans", sans-serif;
-  height: 100%;
-  flex-wrap: wrap;
-  align-content: center; 
-  gap: 10;
-  text-decoration: none;
-  border: solid blue 4px;
 
-  background: transparent 50%;
+@keyframes hide {
+  25% {
+   display: block;
+  }
+  
+  100% {
+    display: none;
+  }
+} 
 
+
+#overlay {
+  position: fixed; /* Sit on top of the page content */
+  display: none; /* Hidden by default */
+  width: 100%; /* Full width (cover the whole page) */
+  height: 100%; /* Full height (cover the whole page) */
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #62acd6; /* Black background with opacity */
+  z-index: 2; /* Specify a stack order in case you're using a different order for other elements */
+  /* cursor: pointer; Add a pointer on hover */
+  display:block; 
+  animation-name: fade-out, hide;
+  animation-duration: 1.5s;
+  animation-fill-mode: forwards;
 }
-.item {
-  flex: 0 0 auto;
+
+
+@keyframes fade-in-slide {
+  25% {
+    opacity: 0;
+    transform: translateY(-40%);
+  }
+  
+  75% {
+    opacity: 100;
+    transform: translateY(0%);
+  }
+} 
+
+.fade-in-slide {
+  animation-name: fade-in-slide;
+  animation-duration: 2.5s;
+  animation-fill-mode: forwards;
+  animation-delay: 1;
+}
+
+@keyframes fade-out {
+  25% {
+    opacity: 100;
+  }
+  
+  75% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 0;
+  }
+} 
+
+.fade-out {
+  animation-name: fade-out;
+  animation-duration: 0.5s;
+  animation-fill-mode: forwards;
+}
+
+@keyframes fade-in {
+  25% {
+    opacity: 0;
+  }
+  
+  75% {
+    opacity: 100;
+  }
+
+  100% {
+    opacity: 0;
+  }
+} 
+
+.fade-in {
+  animation-name: fade-in;
+  animation-duration:0.5s;
+  animation-fill-mode: forwards;
 }

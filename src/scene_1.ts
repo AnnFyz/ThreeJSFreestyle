@@ -26,7 +26,7 @@ export default class Scene_1 extends THREE.Scene {
   buttons: Button[] = [];
   mouse: THREE.Vector2;
   ambientLight: THREE.AmbientLight;
-
+  pointLight: THREE.PointLight;
   //animations
   mixer = new THREE.AnimationMixer(this);
   animationActions: { [key: string]: THREE.AnimationAction } = {};
@@ -45,8 +45,15 @@ export default class Scene_1 extends THREE.Scene {
     SecondClickEvent: "SecondClickEvent",
     None: "None",
   };
-
   currentMouseClickEvent = this.mouseClickEvent.FirstClickEvent;
+
+  //materials
+  meshToonMaterial = new THREE.MeshToonMaterial();
+  outlineMaterial = new THREE.ShaderMaterial();
+  popMesh = new THREE.Mesh();
+
+  event = new Event("StartNewScene");
+
   constructor(
     camera: THREE.PerspectiveCamera,
     renderer: THREE.Renderer,
@@ -59,18 +66,9 @@ export default class Scene_1 extends THREE.Scene {
     this.renderer = renderer;
     this.raycaster = raycaster;
     this.mouse = mouse;
-    this.createGridCameraUI();
-    this.createBackground();
-    this.createButton();
-
     //light
     this.ambientLight = new THREE.AmbientLight(0xffffff, 2);
-    this.add(this.ambientLight);
-
-    const light = new THREE.PointLight(0xffffff, 500);
-    light.position.set(10, 10, 10);
-    this.add(light);
-
+    this.pointLight = new THREE.PointLight(0xffffff, 500);
     //outline
     this.composer = composer;
     this.renderPass = new RenderPass(this, this.camera);
@@ -80,10 +78,17 @@ export default class Scene_1 extends THREE.Scene {
       this.camera
     );
     this.effectFXAA.uniforms["resolution"].value.set(1 / window.innerWidth, 1 / window.innerHeight);
-    this.createOutlines();
 
     //animation
     this.idleScene = new THREE.Group<THREE.Object3DEventMap>();
+  }
+
+  init() {
+    this.createGridCameraUI();
+    this.createBackground();
+    this.createButton();
+    this.createLight();
+    this.createOutlines();
   }
 
   createGridCameraUI() {
@@ -133,6 +138,12 @@ export default class Scene_1 extends THREE.Scene {
     const environmentTexture = new THREE.TextureLoader().load("scene_1/img/Background_scene_1.psd.png");
     this.environment = environmentTexture;
     this.background = environmentTexture;
+  }
+
+  createLight() {
+    this.pointLight.position.set(10, 10, 10);
+    this.add(this.ambientLight);
+    this.add(this.pointLight);
   }
 
   createOutlines() {
@@ -228,11 +239,17 @@ export default class Scene_1 extends THREE.Scene {
         p.hovered = false;
         this.outlinePass.selectedObjects = [];
         document.querySelector(".intro")?.classList.remove("highlighted");
+        document.querySelector(".fade-out")?.classList.remove("fade-out");
+        document.body.style.cursor = "default";
       });
       if (intersects.length) {
         (intersects[0].object as Button).hovered = true;
         this.outlinePass.selectedObjects[0] = intersects[0].object;
         document.querySelector(".intro")?.classList.add("highlighted");
+        document.body.style.cursor = "pointer";
+
+        document.querySelector(".fade-in-slide")?.classList.remove("fade-in-slide");
+        document.querySelector(".intro")?.classList.add("fade-out");
       }
     });
 
@@ -263,7 +280,7 @@ export default class Scene_1 extends THREE.Scene {
   //outline
   solidify = (mesh: THREE.Mesh) => {
     const geometry = mesh.geometry;
-    const material = new THREE.ShaderMaterial({
+    this.outlineMaterial = new THREE.ShaderMaterial({
       vertexShader: /* glsl */ `
       void main() { 
         gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
@@ -276,8 +293,8 @@ export default class Scene_1 extends THREE.Scene {
     `,
     });
 
-    const outline = new THREE.Mesh(geometry, material);
-    this.add(outline);
+    const outline = new THREE.Mesh(geometry, this.outlineMaterial);
+    //this.add(outline);
   };
 
   vertexShader() {
@@ -314,24 +331,19 @@ export default class Scene_1 extends THREE.Scene {
     ]);
 
     this.idleScene = idle.scene;
-    const popMesh = idle.scene.getObjectByName("Pop") as THREE.Mesh;
+
     // mesh texture
     const popTexture = new THREE.TextureLoader().load("scene_1/img/VintagePupTex_5.png");
-    //const gradientTexture = new THREE.TextureLoader().load("scene_1/img/VintagePupTex_6.png");
     popTexture.premultiplyAlpha = false;
     popTexture.flipY = false;
     popTexture.minFilter = THREE.NearestFilter;
     popTexture.magFilter = THREE.NearestFilter;
 
     // mesh material
-    const toonMaterial = new THREE.MeshToonMaterial(); //{ color: 0xfffff }
-    toonMaterial.map = popTexture;
-    //toonMaterial.gradientMap = popTexture;
-    popMesh.material = toonMaterial;
-    //popMesh.material.colorWrite = false;
-    // popMesh.material.polygonOffset = true;
-    // popMesh.material.polygonOffsetFactor = 1;
-    // popMesh.material.polygonOffsetUnits = 1;
+    this.popMesh = this.idleScene.getObjectByName("Pop") as THREE.Mesh;
+    this.popMesh.material = this.meshToonMaterial;
+    this.meshToonMaterial.map = popTexture;
+    //popMesh.material = this.meshToonMaterial;
 
     // mesh animation
     this.mixer = new THREE.AnimationMixer(idle.scene);
@@ -346,8 +358,6 @@ export default class Scene_1 extends THREE.Scene {
 
   startPopAnimation() {
     this.add(this.idleScene);
-    const outline = this.solidify(this.idleScene.getObjectByName("Pop") as THREE.Mesh);
-    //
     this.activeAction.play();
     this.activeAction.setLoop(THREE.LoopOnce, 1);
     this.activeAction.clampWhenFinished = true;
@@ -361,6 +371,10 @@ export default class Scene_1 extends THREE.Scene {
     this.activeAction = this.animationActions["jump"];
     this.activeAction.setLoop(THREE.LoopOnce, 1);
     this.activeAction.clampWhenFinished = true;
+    this.mixer.addEventListener("finished", () => {
+      this.popMesh.visible = false;
+      this.StartNewScene();
+    });
   }
 
   OnFinishedAnimation() {
@@ -370,8 +384,13 @@ export default class Scene_1 extends THREE.Scene {
     console.log("idle again");
   }
 
+  StartNewScene() {
+    console.log("Start new scene");
+    document.dispatchEvent(this.event);
+  }
+
   // update loop
-  animate(delta: number, clock: THREE.Clock) {
+  updateLoop(delta: number, clock: THREE.Clock) {
     this.buttons.forEach((p) => {
       p.update(delta, clock);
     });

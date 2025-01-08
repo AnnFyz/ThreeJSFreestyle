@@ -25,42 +25,24 @@ const mouse = new THREE.Vector2();
 // - composer
 const composer = new EffectComposer(renderer);
 // Scene setup
-let activeScene = new Scene_1(camera, renderer, raycaster, mouse, composer);
-await activeScene.loadAssync();
+const scenes = {
+  FirstScene: "FirstScene",
+  SecondScene: "SecondScene",
+  None: "None",
+};
+let currentScene = scenes.FirstScene;
 
-// // - render pass
-// const renderPass = new RenderPass( activeScene, camera );
-// composer.addPass( renderPass );
+let scene_1 = new Scene_1(camera, renderer, raycaster, mouse, composer);
+let scene_0 = new Scene_0(camera, renderer, raycaster, mouse);
 
-// const outlinePass= new OutlinePass(
-//       new THREE.Vector2(window.innerWidth, window.innerHeight), //resolution parameter
-//       activeScene,
-//       camera);
+scene_1.init();
+scene_0.init();
+await scene_1.loadAssync();
+await scene_0.loadAssync();
 
-// // -- parameter config
-// outlinePass.edgeStrength = 3.0;
-// outlinePass.edgeGlow = 0;
-// outlinePass.edgeThickness = 3.0;
-// outlinePass.pulsePeriod = 0;
-// outlinePass.usePatternTexture = false; // patter texture for an object mesh
-// outlinePass.visibleEdgeColor.set("#ffffff"); // set basic edge color
-// outlinePass.hiddenEdgeColor.set("#1abaff"); // set edge color when it hidden by other object
-// composer.addPass(outlinePass);
-
-// //shader
-// const effectFXAA = new ShaderPass(FXAAShader);
-// effectFXAA.uniforms["resolution"].value.set(
-//   1 / window.innerWidth,
-//   1 / window.innerHeight
-// );
-// effectFXAA.renderToScreen = true;
-// composer.addPass(effectFXAA);
-
-// activeScene.buttons.forEach(button => {
-//   button.setOutlines(outlinePass);
-// });
-//outlinePass.selectedObjects = activeScene.buttons
-
+document.addEventListener("StartNewScene", () => {
+  currentScene = scenes.SecondScene;
+});
 
 window.addEventListener("resize", () => {
   camera.aspect = window.innerWidth / window.innerHeight;
@@ -68,10 +50,9 @@ window.addEventListener("resize", () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
   composer.setSize(window.innerWidth, window.innerHeight);
 
-    activeScene.effectFXAA.uniforms["resolution"].value.set(
-      1 / window.innerWidth,
-      1 / window.innerHeight
-    );
+  // if (currentScene == scenes.FirstScene) {
+  //   scene_1.effectFXAA.uniforms["resolution"].value.set(1 / window.innerWidth, 1 / window.innerHeight);
+  // }
 });
 
 const controls = new OrbitControls(camera, renderer.domElement);
@@ -90,20 +71,26 @@ const clock = new THREE.Clock();
 let delta = 0;
 
 function animate() {
+  renderer.clearColor();
   requestAnimationFrame(animate);
 
   delta = clock.getDelta();
 
-  activeScene.animate(delta, clock);
+  scene_1.updateLoop(delta, clock);
+  renderer.render(scene_1, camera);
 
+  // if (currentScene == scenes.FirstScene) {
+  //   scene_1.animate(delta, clock);
+  //   renderer.render(scene_1, camera);
+  // } else if (currentScene == scenes.SecondScene) {
+  //   scene_0.animate(delta, clock);
+  //   renderer.render(scene_0, camera);
+  // }
   controls.update();
-
-  renderer.render(activeScene, camera);
 
   stats.update();
 
   composer.render();
-
 }
 
 animate();

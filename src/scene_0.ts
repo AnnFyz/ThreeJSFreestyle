@@ -25,13 +25,24 @@ export default class Scene_0 extends THREE.Scene {
     this.renderer = renderer;
     this.raycaster = raycaster;
     this.mouse = mouse;
+    
+  }
+
+  init(){
     this.createGridCameraUI();
     this.createBackground();
     this.createLight();
     this.createButton();
     this.createTextMesh();
     this.createTroikaText();
+    const geometry = new THREE.BoxGeometry();
+    const material = new THREE.MeshNormalMaterial({ wireframe: true });
+
+    const cube = new THREE.Mesh(geometry, material);
+    this.add(cube);
+    
   }
+
 
   createGridCameraUI() {
     this.camera.position.set(0.1, 2, 6);
@@ -233,7 +244,7 @@ export default class Scene_0 extends THREE.Scene {
   }
 
   // update loop
-  animate(delta: number, clock: THREE.Clock) {
+  updateLoop(delta: number, clock: THREE.Clock) {
     this.buttons.forEach((p) => {
       p.update(delta, clock);
     });

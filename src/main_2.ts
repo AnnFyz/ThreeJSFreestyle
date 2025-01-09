@@ -32,13 +32,13 @@ const scenes = {
 };
 let currentScene = scenes.FirstScene;
 
-let scene_1 = new Scene_1(camera, renderer, raycaster, mouse, composer);
-//let scene_0 = new Scene_0(camera, renderer, raycaster, mouse);
+//let scene_1 = new Scene_1(camera, renderer, raycaster, mouse, composer);
+let scene_0 = new Scene_0(camera, renderer, raycaster, mouse);
 
-scene_1.init();
-//scene_0.init();
-await scene_1.loadAssync();
-//await scene_0.loadAssync();
+//scene_1.init();
+scene_0.init();
+//await scene_1.loadAssync();
+await scene_0.loadAssync();
 
 document.addEventListener("StartNewScene", () => {
   currentScene = scenes.SecondScene;
@@ -76,8 +76,8 @@ function animate() {
 
   delta = clock.getDelta();
 
-  scene_1.updateLoop(delta, clock);
-  renderer.render(scene_1, camera);
+  scene_0.updateLoop(delta, clock);
+  renderer.render(scene_0, camera);
 
   // if (currentScene == scenes.FirstScene) {
   //   scene_1.animate(delta, clock);
@@ -92,6 +92,5 @@ function animate() {
 
   composer.render();
 }
-
 
 animate();

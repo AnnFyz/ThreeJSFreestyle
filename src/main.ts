@@ -4,14 +4,16 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import Stats from "three/addons/libs/stats.module.js";
 import Scene_0 from "./scene_0";
 import Scene_1 from "./scene_1";
+import Level_1 from "./level_1";
+import Level_2 from "./level_2";
 
-//Modules to implement outline pass
+// //Modules to implement outline pass
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
-import { OutlinePass } from "three/examples/jsm/postprocessing/OutlinePass.js";
-import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
-//Modules below are regarded to shader
-import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
-import { FXAAShader } from "three/examples/jsm/shaders/FXAAShader.js";
+// import { OutlinePass } from "three/examples/jsm/postprocessing/OutlinePass.js";
+// import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
+// //Modules below are regarded to shader
+// import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
+// import { FXAAShader } from "three/examples/jsm/shaders/FXAAShader.js";
 
 const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 100);
 camera.position.set(0.1, 2, 6);
@@ -32,13 +34,25 @@ const scenes = {
 };
 let currentScene = scenes.FirstScene;
 
-let scene_1 = new Scene_1(camera, renderer, raycaster, mouse, composer);
+//let scene_1 = new Scene_1(camera, renderer, raycaster, mouse, composer);
 //let scene_0 = new Scene_0(camera, renderer, raycaster, mouse);
 
-scene_1.init();
+//scene_1.init();
 //scene_0.init();
-await scene_1.loadAssync();
+//await scene_1.loadAssync();
 //await scene_0.loadAssync();
+
+const level_1 = new Level_1();
+const level_2 = new Level_2();
+
+let activeScene = level_1.scene;
+document.onkeydown = function (e) {
+  e = e || window.event;
+  if (e.shiftKey) {
+    activeScene = level_2.scene;
+  }
+  // use e.keyCode
+};
 
 document.addEventListener("StartNewScene", () => {
   currentScene = scenes.SecondScene;
@@ -76,8 +90,8 @@ function animate() {
 
   delta = clock.getDelta();
 
-  scene_1.updateLoop(delta, clock);
-  renderer.render(scene_1, camera);
+  //scene_1.updateLoop(delta, clock);
+  renderer.render(activeScene, camera);
 
   // if (currentScene == scenes.FirstScene) {
   //   scene_1.animate(delta, clock);

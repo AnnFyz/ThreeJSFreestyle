@@ -3,14 +3,18 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { GUI } from "dat.gui";
 import Button from "./button";
-import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
-import { FontLoader } from "three/addons/loaders/FontLoader.js";
-import { OutlinePass } from "three/addons/postprocessing/OutlinePass.js";
+//Modules to implement outline pass
+import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
+import { OutlinePass } from "three/examples/jsm/postprocessing/OutlinePass.js";
+import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
+//Modules below are regarded to shader
+import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
+import { FXAAShader } from "three/examples/jsm/shaders/FXAAShader.js";
 
 export default class Level_1 {
   scene = new THREE.Scene();
   camera: THREE.PerspectiveCamera;
-  renderer: THREE.Renderer;
+  renderer: THREE.WebGLRenderer;
   raycaster: THREE.Raycaster;
   buttons: Button[] = [];
   mouse: THREE.Vector2;
@@ -30,14 +34,21 @@ export default class Level_1 {
   };
   currentMouseClickEvent = this.mouseClickEvent.FirstClickEvent;
 
+  //shader effect
+  composer: EffectComposer;
+  renderPass: RenderPass;
+  outlinePass: OutlinePass;
+  effectFXAA = new ShaderPass(FXAAShader);
+
+  outlinePass_2: OutlinePass;
+
   //materials
-  outlinePass: any;
   meshToonMaterial = new THREE.MeshToonMaterial();
   outlineMaterial = new THREE.ShaderMaterial();
   popMesh = new THREE.Mesh();
 
   event = new Event("StartNewScene");
-  constructor(camera: THREE.PerspectiveCamera, renderer: THREE.Renderer, raycaster: THREE.Raycaster, mouse: THREE.Vector2) {
+  constructor(camera: THREE.PerspectiveCamera, renderer: THREE.WebGLRenderer, raycaster: THREE.Raycaster, mouse: THREE.Vector2) {
     this.camera = camera;
     this.renderer = renderer;
     this.raycaster = raycaster;
@@ -49,18 +60,52 @@ export default class Level_1 {
     //animation
     this.idleScene = new THREE.Group<THREE.Object3DEventMap>();
 
+    //post processing
+    this.renderPass = new RenderPass(this.scene, camera); //THE PROBLEM
+    this.outlinePass = new OutlinePass(
+      new THREE.Vector2(window.innerWidth, window.innerHeight), //resolution parameter
+      this.scene,
+      camera
+    );
+
+    this.outlinePass_2 = new OutlinePass(
+      new THREE.Vector2(window.innerWidth, window.innerHeight), //resolution parameter
+      this.scene,
+      camera
+    );
+    
+    this.effectFXAA = new ShaderPass(FXAAShader);
+    this.effectFXAA.uniforms["resolution"].value.set(1 / window.innerWidth, 1 / window.innerHeight);
+    this.composer = new EffectComposer(renderer);
+
+    //
     this.init();
   }
 
   init() {
-    this.createGridCameraUI();
+    //this.createGridCameraUI();
     this.createBackground();
     this.createButton();
     this.createLight();
+    this.createOutlines();
   }
 
-  setOutlines(outlinePass: OutlinePass) {
-    this.outlinePass = outlinePass;
+    //outline as a postprocessing
+  createOutlines() {
+    this.composer.addPass(this.renderPass);
+    // -- parameter config
+    this.outlinePass.edgeStrength = 3.0;
+    this.outlinePass.edgeGlow = 0;
+    this.outlinePass.edgeThickness = 3.0;
+    this.outlinePass.pulsePeriod = 0;
+    this.outlinePass.usePatternTexture = false; // patter texture for an object mesh
+    this.outlinePass.visibleEdgeColor.set("#ffffff"); // set basic edge color
+    //this.outlinePass.hiddenEdgeColor.set("#1abaff"); // set edge color when it hidden by other object
+
+    this.composer.addPass( this.outlinePass);
+    this.effectFXAA.renderToScreen = true;
+    this.composer.addPass(this.effectFXAA);
+
   }
 
   createGridCameraUI() {
@@ -68,7 +113,7 @@ export default class Level_1 {
 
     const gridHelper = new THREE.GridHelper(100, 100);
     let isGridVisible = {
-      switch: false,
+      switch: true,
     };
     gridHelper.visible = isGridVisible.switch;
     this.scene.add(gridHelper);
@@ -103,7 +148,7 @@ export default class Level_1 {
     });
 
     gui.hide();
-    //cameraFolder.open();
+    cameraFolder.open();
   }
 
   createBackground() {
@@ -120,41 +165,6 @@ export default class Level_1 {
 
   setLightIntensity(intensity: number) {
     this.ambientLight.intensity = intensity;
-  }
-
-  createTextMesh() {
-    let textScale = 0.1;
-    let textOffset = 3;
-    let textGeo: TextGeometry;
-    let textMesh: THREE.Mesh;
-    let activeScene = this.scene;
-    const loader = new FontLoader();
-    loader.load("fonts/Play_Regular.json", function (font) {
-      textGeo = new TextGeometry("Welcome to the magic world \n of the Adventure Pup !", {
-        font: font,
-        size: 1,
-        height: 0.25,
-        curveSegments: 8,
-        bevelEnabled: true,
-        bevelThickness: 0.125,
-        bevelSize: 0.025,
-        bevelOffset: 0,
-        bevelSegments: 4,
-      });
-      textGeo.computeBoundingBox();
-      textMesh = new THREE.Mesh(textGeo, new THREE.MeshToonMaterial({ color: 0x3f54ff }));
-      if (textGeo.boundingBox != null) {
-        const centerOffset = -0.5 * (textGeo.boundingBox.max.x - textGeo.boundingBox.min.x) * textScale;
-        textMesh.position.x = centerOffset * textOffset;
-        textMesh.position.y = 2;
-        textMesh.position.z = 0;
-
-        textMesh.rotation.x = 0;
-        textMesh.rotation.y = Math.PI * 0.1;
-        textMesh.scale.set(textScale, textScale, textScale);
-      }
-      activeScene.add(textMesh);
-    });
   }
 
   createButton() {
@@ -193,7 +203,12 @@ export default class Level_1 {
 
       this.buttons.forEach((p) => {
         p.hovered = false;
-        ///this.outlinePass.selectedObjects = [];
+        const index = this.outlinePass.selectedObjects.indexOf(p);
+        if (index > -1) { // only splice array when item is found
+          this.outlinePass.selectedObjects.splice(index, 1); // 2nd parameter means remove one item only
+        }
+        
+        
         document.querySelector(".intro")?.classList.remove("highlighted");
         document.querySelector(".fade-out")?.classList.remove("fade-out");
         document.body.style.cursor = "default";
@@ -234,7 +249,7 @@ export default class Level_1 {
     });
   }
 
-  //outline
+  //outline as a mesh 
   solidify = (mesh: THREE.Mesh) => {
     const geometry = mesh.geometry;
     this.outlineMaterial = new THREE.ShaderMaterial({
@@ -251,32 +266,9 @@ export default class Level_1 {
     });
 
     const outline = new THREE.Mesh(geometry, this.outlineMaterial);
-    //this.add(outline);
+    //this.scene.add(outline);
   };
 
-  vertexShader() {
-    return `
-        varying vec3 vUv; 
-    
-        void main() {
-          vUv = position; 
-    
-          vec4 modelViewPosition = modelViewMatrix * vec4(position, 1.0);
-          gl_Position = projectionMatrix * modelViewPosition; 
-        }
-      `;
-  }
-  fragmentShader() {
-    return `
-      uniform vec3 colorA; 
-      uniform vec3 colorB; 
-      varying vec3 vUv;
-  
-      void main() {
-        gl_FragColor = vec4(mix(colorA, colorB, vUv.z), 1.0);
-      }
-  `;
-  }
   // loading pop model and animations
   async loadAssync() {
     const scalar = 0.5;

@@ -30,6 +30,10 @@ export default class Level_2 {
   universalController_1_2 = new THREE.Mesh();
   universalController_wire_1_1 = new THREE.LineSegments();
   universalController_wire_1_2 = new THREE.LineSegments();
+  controller_1_1_texture: any;
+  controller_1_2_texture: any;
+  //materials
+  outlineMaterial = new THREE.ShaderMaterial();
 
   //shader effect
   composer: EffectComposer;
@@ -37,6 +41,14 @@ export default class Level_2 {
   outlinePass: OutlinePass;
   effectFXAA = new ShaderPass(FXAAShader);
 
+  // events
+  buttons: Button[] = [];
+  mouseClickEvent = {
+    FirstClickEvent: "FirstClickEvent",
+    SecondClickEvent: "SecondClickEvent",
+    None: "None",
+  };
+  currentMouseClickEvent = this.mouseClickEvent.FirstClickEvent;
 
   constructor(camera: THREE.PerspectiveCamera, renderer: THREE.WebGLRenderer, raycaster: THREE.Raycaster, mouse: THREE.Vector2) {
     this.camera = camera;
@@ -56,7 +68,6 @@ export default class Level_2 {
       camera
     );
 
-
     this.effectFXAA = new ShaderPass(FXAAShader);
     this.effectFXAA.uniforms["resolution"].value.set(1 / window.innerWidth, 1 / window.innerHeight);
     this.composer = new EffectComposer(renderer);
@@ -74,18 +85,19 @@ export default class Level_2 {
     this.createGridCameraUI();
     this.createBackground();
     this.createLight();
-    // this.createButton();
     this.createTextMesh();
     this.createOutlines();
+    this.createImage();
     this.createControllers();
     this.createInteractions();
+    this.setupButtonInteractions();
   }
 
   createGridCameraUI() {
     this.camera.position.set(0.1, 2, 6);
     const gridHelper = new THREE.GridHelper(100, 100);
     let isGridVisible = {
-      switch: true,
+      switch: false,
     };
     gridHelper.visible = isGridVisible.switch;
     this.scene.add(gridHelper);
@@ -119,9 +131,28 @@ export default class Level_2 {
   }
 
   createBackground() {
-    const environmentTexture = new THREE.TextureLoader().load("img/Background_1.png");
+    const environmentTexture = new THREE.TextureLoader().load("scene_1/img/Background_scene_1.psd.png");
     this.scene.environment = environmentTexture;
     this.scene.background = environmentTexture;
+  }
+
+  createImage() {
+    const textureLoader = new THREE.TextureLoader();
+    const texture = textureLoader.load("scene_2/MetaQuest.png"); // Path to your image
+    texture.colorSpace = THREE.SRGBColorSpace;
+    // Create the sprite material
+    const spriteMaterial = new THREE.SpriteMaterial({
+      map: texture,
+      color: 0xffffff, // White color, ensuring no color multiplication
+      transparent: true,
+    });
+
+    // Create the sprite
+    const sprite = new THREE.Sprite(spriteMaterial);
+    sprite.position.set(0, 1.65, 0);
+    sprite.scale.set(2.2, 1.25, 1);
+    // Add the sprite to your scene, etc.
+    this.scene.add(sprite);
   }
 
   createLight() {
@@ -129,12 +160,12 @@ export default class Level_2 {
     light.position.set(10, 10, 10);
     this.scene.add(light);
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, 2);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 3);
     this.scene.add(ambientLight);
   }
 
-   //outline as a postprocessing
-   createOutlines() {
+  //outline as a postprocessing
+  createOutlines() {
     this.composer.addPass(this.renderPass);
     // -- parameter config
     this.outlinePass.edgeStrength = 15.0;
@@ -145,24 +176,48 @@ export default class Level_2 {
     this.outlinePass.visibleEdgeColor.set("#ffffff"); // set basic edge color
     //this.outlinePass.hiddenEdgeColor.set("#1abaff"); // set edge color when it hidden by other object
 
-    this.composer.addPass( this.outlinePass);
+    this.composer.addPass(this.outlinePass);
     this.effectFXAA.renderToScreen = true;
     this.composer.addPass(this.effectFXAA);
-
   }
 
-  createControllers() {
-    const controller_1_1_texture = new THREE.TextureLoader().load("scene_2/UniversalController_1.png");
-    controller_1_1_texture.premultiplyAlpha = false;
-    controller_1_1_texture.magFilter = THREE.NearestFilter;
-    controller_1_1_texture.minFilter = THREE.NearestFilter;
-    controller_1_1_texture.flipY = false;
+  //outline as a mesh
+  solidify = (mesh: THREE.Mesh) => {
+    const THICKNESS = 0.015;
+    const geometry = mesh.geometry;
+    this.outlineMaterial = new THREE.ShaderMaterial({
+      vertexShader: /* glsl */ `
+          void main() { 
+            vec3 newPosition = position + normal  * ${THICKNESS};
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1);
+          }
+        `,
+      fragmentShader: /* glsl */ `
+          void main() { 
+            gl_FragColor = vec4(0,0,0,1);
+          }
+        `,
 
-    const controller_1_2_texture = new THREE.TextureLoader().load("scene_2/UniversalController_2.png");
-    controller_1_2_texture.premultiplyAlpha = false;
-    controller_1_2_texture.magFilter = THREE.NearestFilter;
-    controller_1_2_texture.minFilter = THREE.NearestFilter;
-    controller_1_2_texture.flipY = false;
+      side: THREE.BackSide,
+    });
+
+    const outline = new THREE.Mesh(geometry, this.outlineMaterial);
+    //outline.scale.addScalar(1);
+    this.scene.add(outline);
+  };
+
+  createControllers() {
+    this.controller_1_1_texture = new THREE.TextureLoader().load("scene_2/UniversalController_1.png");
+    this.controller_1_1_texture.premultiplyAlpha = false;
+    this.controller_1_1_texture.magFilter = THREE.NearestFilter;
+    this.controller_1_1_texture.minFilter = THREE.NearestFilter;
+    this.controller_1_1_texture.flipY = false;
+
+    this.controller_1_2_texture = new THREE.TextureLoader().load("scene_2/UniversalController_2.png");
+    this.controller_1_2_texture.premultiplyAlpha = false;
+    this.controller_1_2_texture.magFilter = THREE.NearestFilter;
+    this.controller_1_2_texture.minFilter = THREE.NearestFilter;
+    this.controller_1_2_texture.flipY = false;
 
     new GLTFLoader().load("scene_2/UniversalController.glb", (gltf) => {
       this.universalController_parent = gltf.scene.getObjectByName("Controller") as THREE.Mesh;
@@ -170,37 +225,33 @@ export default class Level_2 {
       this.universalController_1_2 = this.universalController_parent.children[0] as THREE.Mesh;
 
       let material_1 = new THREE.MeshToonMaterial({ color: 0xffffff });
-      material_1.map = controller_1_1_texture;
+      material_1.map = this.controller_1_1_texture;
       this.universalController_1_1.material = material_1;
 
       let material_2 = new THREE.MeshToonMaterial({ color: 0xffffff });
-      material_2.map = controller_1_2_texture;
+      material_2.map = this.controller_1_2_texture;
       this.universalController_1_2.material = material_2;
 
-      this.universalController_1_1.scale.setScalar(10);
-      this.universalController_1_2.scale.setScalar(10);
-      this.scene.add(this.universalController_1_1);
-      this.scene.add(this.universalController_1_2);
+      //this.scene.add(this.universalController_1_1);
+      //this.scene.add(this.universalController_1_2);
 
       let geo_1 = new THREE.EdgesGeometry(this.universalController_1_1.geometry);
       const edgesMaterial_1 = new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 10 });
       this.universalController_wire_1_1 = new THREE.LineSegments(geo_1, edgesMaterial_1);
-      this.universalController_wire_1_1.scale.addScalar(9);
       material_1.colorWrite = false;
       material_1.polygonOffset = true;
       material_1.polygonOffsetFactor = 1;
       material_1.polygonOffsetUnits = 1;
-      this.scene.add(this.universalController_wire_1_1);
+      //this.scene.add(this.universalController_wire_1_1);
 
       let geo_2 = new THREE.EdgesGeometry(this.universalController_1_2.geometry);
       const edgesMaterial_2 = new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 10 });
       this.universalController_wire_1_2 = new THREE.LineSegments(geo_2, edgesMaterial_2);
-      this.universalController_wire_1_2.scale.addScalar(9);
       material_2.colorWrite = false;
       material_2.polygonOffset = true;
       material_2.polygonOffsetFactor = 1;
       material_2.polygonOffsetUnits = 1;
-      this.scene.add(this.universalController_wire_1_2);
+      //this.scene.add(this.universalController_wire_1_2);
 
       this.interactableObj.push(this.universalController_1_1);
       this.interactableObj.push(this.universalController_1_2);
@@ -208,6 +259,36 @@ export default class Level_2 {
       //this.interactableObj.push(this.universalController_wire_1_2);
       //this.outlinePass.selectedObjects.push( this.interactableObj[0]);
       //this.outlinePass.selectedObjects.push( this.interactableObj[1]);
+      //this.solidify(this.universalController_1_1);
+      //this.solidify(this.universalController_1_2);
+      const button = new Button(
+        this.scene,
+        this.universalController_1_2.geometry,
+        new THREE.MeshToonMaterial({ color: 0xffffff }),
+        new THREE.Color(0xeeeeee),
+        this.controller_1_2_texture,
+        true
+      );
+
+      button.setSecondMesh(this.universalController_1_1, this.controller_1_1_texture);
+
+      console.log(button);
+      // @ts-ignore
+      this.buttons.push(button);
+
+      //   const button_secondBase = new Button(
+      //     this.universalController_1_1.geometry,
+      //     new THREE.MeshToonMaterial({ color: 0xffffff }),
+      //     new THREE.Color(0xeeeeee),
+      //     this.controller_1_1_texture
+      //   );
+      //   button_secondBase.setScale(1, 1, 1);
+      //   console.log(button_secondBase);
+      //   // @ts-ignore
+      //   this.buttons.push(button_secondBase);
+      //   this.scene.add(button_secondBase);
+      //   this.scene.add(button_secondBase.wireframe);
+      //   this.scene.add(button_secondBase.outlineObject);
     });
   }
 
@@ -219,16 +300,14 @@ export default class Level_2 {
         -(e.clientY / this.renderer.domElement.clientHeight) * 2 + 1
       );
       this.raycaster.setFromCamera(this.mouse, this.camera);
-      console.log("MOUSE MOVE");
       this.interactableObj.forEach((o) => {
         const index = this.outlinePass.selectedObjects.indexOf(o);
         if (index > -1) {
           // only splice array when item is found
           this.outlinePass.selectedObjects.splice(index, 1); // 2nd parameter means remove one item only
         }
-     });
+      });
       if (intersects.length) {
-        console.log("intersects.length ", intersects.length);
         this.outlinePass.selectedObjects.push(intersects[0].object);
       }
     });
@@ -242,7 +321,7 @@ export default class Level_2 {
     let outlinePass = this.outlinePass;
     const loader = new FontLoader();
     loader.load("fonts/Play_Regular.json", function (font) {
-      textGeo = new TextGeometry("Welcome to the magic world \n of the Adventure Pup !", {
+      textGeo = new TextGeometry("Meta Quest\n3", {
         font: font,
         size: 1,
         height: 0.25,
@@ -269,8 +348,65 @@ export default class Level_2 {
       outlinePass.selectedObjects.push(textMesh);
     });
   }
+  setupButtonInteractions() {
+    this.renderer.domElement.addEventListener("mousemove", (e) => {
+      const intersects = this.raycaster.intersectObjects(this.buttons, false);
+      this.mouse.set(
+        (e.clientX / this.renderer.domElement.clientWidth) * 2 - 1,
+        -(e.clientY / this.renderer.domElement.clientHeight) * 2 + 1
+      );
+      this.raycaster.setFromCamera(this.mouse, this.camera);
 
+      this.buttons.forEach((p) => {
+        p.hovered = false;
+        const index = this.outlinePass.selectedObjects.indexOf(p);
+        if (index > -1) {
+          // only splice array when item is found
+          this.outlinePass.selectedObjects.splice(index, 1); // 2nd parameter means remove one item only
+        }
+
+        document.querySelector(".intro")?.classList.remove("highlighted");
+        document.querySelector(".fade-out")?.classList.remove("fade-out");
+        document.body.style.cursor = "default";
+      });
+      if (intersects.length) {
+        (intersects[0].object as Button).hovered = true;
+        //this.outlinePass.selectedObjects.push(intersects[0].object);
+        this.outlinePass.selectedObjects.push(intersects[0].object);
+        document.querySelector(".intro")?.classList.add("highlighted");
+        document.body.style.cursor = "pointer";
+
+        document.querySelector(".fade-in-slide")?.classList.remove("fade-in-slide");
+        document.querySelector(".intro")?.classList.add("fade-out");
+      }
+    });
+
+    this.renderer.domElement.addEventListener("pointerdown", (e) => {
+      this.mouse.set(
+        (e.clientX / this.renderer.domElement.clientWidth) * 2 - 1,
+        -(e.clientY / this.renderer.domElement.clientHeight) * 2 + 1
+      );
+      const intersects = this.raycaster.intersectObjects(this.buttons, false);
+      this.raycaster.setFromCamera(this.mouse, this.camera);
+
+      // toggles `clicked` property for only the Pickable closest to the camera
+      if (intersects.length) {
+        console.log("was clicked" + (intersects[0].object as Button).clicked);
+        (intersects[0].object as Button).clicked = !(intersects[0].object as Button).clicked;
+        document.querySelector(".intro")?.classList.add("hidden");
+        if (this.currentMouseClickEvent == this.mouseClickEvent.FirstClickEvent) {
+          this.currentMouseClickEvent = this.mouseClickEvent.SecondClickEvent;
+        } else if (this.currentMouseClickEvent == this.mouseClickEvent.SecondClickEvent) {
+          this.currentMouseClickEvent = this.mouseClickEvent.None;
+        }
+      }
+    });
+  }
   // update loop
-  updateLoop(delta: number, clock: THREE.Clock) {}
+  updateLoop(delta: number, clock: THREE.Clock) {
+    this.buttons.forEach((p) => {
+      p.update(delta, clock);
+    });
+  }
 }
   

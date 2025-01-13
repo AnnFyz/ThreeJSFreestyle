@@ -179,14 +179,14 @@ export default class Level_1 {
     new GLTFLoader().load("scene_1/models/Platform_1_3.glb", (gltf) => {
       const buttonMesh = gltf.scene.getObjectByName("platform_1") as THREE.Mesh;
       const button = new Button(
+        this.scene,
         buttonMesh.geometry,
         new THREE.MeshToonMaterial({ color: 0xffffff }),
         new THREE.Color(0xeeeeee),
-        platformTexture
+        platformTexture,
+        false
       );
       button.setScale(1, 1, 1);
-      //button.setPosition(-1, 1, -0.15);
-      console.log(button);
       // @ts-ignore
       this.buttons.push(button);
       this.scene.add(button);

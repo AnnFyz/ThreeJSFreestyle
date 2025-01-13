@@ -21,10 +21,14 @@ export default class Level_2 {
   raycaster: THREE.Raycaster;
   interactableObj: any[] = [];
   mouse: THREE.Vector2;
-  ambientLight: THREE.AmbientLight;
-  pointLight: THREE.PointLight;
+
+  //light
+  ambientLight = new THREE.AmbientLight(0xffffff, 2);
+  pointLight = new THREE.PointLight(0xffffff, 50);
+  //Make a pivot
+  pivot = new THREE.Object3D();
+
   textMesh = new THREE.Mesh();
-  cube = new THREE.Mesh();
   universalController_parent = new THREE.Mesh();
   universalController_1_1 = new THREE.Mesh();
   universalController_1_2 = new THREE.Mesh();
@@ -55,9 +59,6 @@ export default class Level_2 {
     this.renderer = renderer;
     this.raycaster = raycaster;
     this.mouse = mouse;
-    //light
-    this.ambientLight = new THREE.AmbientLight(0xffffff, 2);
-    this.pointLight = new THREE.PointLight(0xffffff, 50);
     this.scene.background = new THREE.Color(0x654321);
 
     //post processing
@@ -149,19 +150,20 @@ export default class Level_2 {
 
     // Create the sprite
     const sprite = new THREE.Sprite(spriteMaterial);
-    sprite.position.set(0, 1.65, 0);
+    sprite.position.set(0, 1.65, -2);
     sprite.scale.set(2.2, 1.25, 1);
     // Add the sprite to your scene, etc.
     this.scene.add(sprite);
   }
 
   createLight() {
-    const light = new THREE.PointLight(0xffffff, 500);
-    light.position.set(10, 10, 10);
-    this.scene.add(light);
+    this.pointLight = new THREE.PointLight(0xffffff, 500);
+    this.pivot.position.set(10, 10, 10);
+    this.pivot.add(this.pointLight);
+    this.scene.add(this.pivot);
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, 3);
-    this.scene.add(ambientLight);
+    this.ambientLight = new THREE.AmbientLight(0xffffff, 2);
+    this.scene.add(this.ambientLight);
   }
 
   //outline as a postprocessing
@@ -232,63 +234,39 @@ export default class Level_2 {
       material_2.map = this.controller_1_2_texture;
       this.universalController_1_2.material = material_2;
 
-      //this.scene.add(this.universalController_1_1);
-      //this.scene.add(this.universalController_1_2);
+      // let geo_1 = new THREE.EdgesGeometry(this.universalController_1_1.geometry);
+      // const edgesMaterial_1 = new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 10 });
+      // this.universalController_wire_1_1 = new THREE.LineSegments(geo_1, edgesMaterial_1);
+      // material_1.colorWrite = false;
+      // material_1.polygonOffset = true;
+      // material_1.polygonOffsetFactor = 1;
+      // material_1.polygonOffsetUnits = 1;
 
-      let geo_1 = new THREE.EdgesGeometry(this.universalController_1_1.geometry);
-      const edgesMaterial_1 = new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 10 });
-      this.universalController_wire_1_1 = new THREE.LineSegments(geo_1, edgesMaterial_1);
-      material_1.colorWrite = false;
-      material_1.polygonOffset = true;
-      material_1.polygonOffsetFactor = 1;
-      material_1.polygonOffsetUnits = 1;
-      //this.scene.add(this.universalController_wire_1_1);
+      // let geo_2 = new THREE.EdgesGeometry(this.universalController_1_2.geometry);
+      // const edgesMaterial_2 = new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 10 });
+      // this.universalController_wire_1_2 = new THREE.LineSegments(geo_2, edgesMaterial_2);
+      // material_2.colorWrite = false;
+      // material_2.polygonOffset = true;
+      // material_2.polygonOffsetFactor = 1;
+      // material_2.polygonOffsetUnits = 1;
 
-      let geo_2 = new THREE.EdgesGeometry(this.universalController_1_2.geometry);
-      const edgesMaterial_2 = new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 10 });
-      this.universalController_wire_1_2 = new THREE.LineSegments(geo_2, edgesMaterial_2);
-      material_2.colorWrite = false;
-      material_2.polygonOffset = true;
-      material_2.polygonOffsetFactor = 1;
-      material_2.polygonOffsetUnits = 1;
-      //this.scene.add(this.universalController_wire_1_2);
+      // this.interactableObj.push(this.universalController_1_1);
+      // this.interactableObj.push(this.universalController_1_2);
 
-      this.interactableObj.push(this.universalController_1_1);
-      this.interactableObj.push(this.universalController_1_2);
-      //this.interactableObj.push(this.universalController_wire_1_1);
-      //this.interactableObj.push(this.universalController_wire_1_2);
-      //this.outlinePass.selectedObjects.push( this.interactableObj[0]);
-      //this.outlinePass.selectedObjects.push( this.interactableObj[1]);
-      //this.solidify(this.universalController_1_1);
-      //this.solidify(this.universalController_1_2);
       const button = new Button(
         this.scene,
         this.universalController_1_2.geometry,
         new THREE.MeshToonMaterial({ color: 0xffffff }),
         new THREE.Color(0xeeeeee),
-        this.controller_1_2_texture,
-        true
+        true,
+        true,
+        this.controller_1_2_texture
       );
 
       button.setSecondMesh(this.universalController_1_1, this.controller_1_1_texture);
-
+      this.buttons.push(button);
       console.log(button);
       // @ts-ignore
-      this.buttons.push(button);
-
-      //   const button_secondBase = new Button(
-      //     this.universalController_1_1.geometry,
-      //     new THREE.MeshToonMaterial({ color: 0xffffff }),
-      //     new THREE.Color(0xeeeeee),
-      //     this.controller_1_1_texture
-      //   );
-      //   button_secondBase.setScale(1, 1, 1);
-      //   console.log(button_secondBase);
-      //   // @ts-ignore
-      //   this.buttons.push(button_secondBase);
-      //   this.scene.add(button_secondBase);
-      //   this.scene.add(button_secondBase.wireframe);
-      //   this.scene.add(button_secondBase.outlineObject);
     });
   }
 
@@ -312,6 +290,7 @@ export default class Level_2 {
       }
     });
   }
+
   createTextMesh() {
     let textScale = 0.1;
     let textOffset = 3;
@@ -319,6 +298,7 @@ export default class Level_2 {
     let textMesh = this.textMesh;
     let activeScene = this.scene;
     let outlinePass = this.outlinePass;
+    let buttons = this.buttons;
     const loader = new FontLoader();
     loader.load("fonts/Play_Regular.json", function (font) {
       textGeo = new TextGeometry("Meta Quest\n3", {
@@ -344,8 +324,17 @@ export default class Level_2 {
         textMesh.rotation.y = Math.PI * 0.1;
         textMesh.scale.set(textScale, textScale, textScale);
       }
-      activeScene.add(textMesh);
-      outlinePass.selectedObjects.push(textMesh);
+      //activeScene.add(textMesh);
+      //outlinePass.selectedObjects.push(textMesh);
+      const button = new Button(
+        activeScene,
+        textMesh.geometry,
+        new THREE.MeshToonMaterial({ color: 0xffffff }),
+        new THREE.Color(0xeeeeee),
+        false,
+        true
+      );
+      buttons.push(button);
     });
   }
   setupButtonInteractions() {

@@ -25,13 +25,18 @@ export default class Button extends THREE.Mesh {
   wireframeSecondMesh: any;
   textureSecondMesh: any;
   materialSecondMesh = new THREE.MeshToonMaterial();
+
+  //floating
+  randomNumber = Math.floor(Math.random() * 0.25);
+  isFloating = false;
   constructor(
     scene: THREE.Scene,
     geometry: THREE.BufferGeometry,
     material: THREE.MeshToonMaterial,
     colorTo: THREE.Color,
-    texture = THREE.Texture.DEFAULT_IMAGE,
     hasTwoMeshes: boolean,
+    isFloating = false,
+    texture = THREE.Texture.DEFAULT_IMAGE
   ) {
     super();
     this.scene = scene;
@@ -52,47 +57,49 @@ export default class Button extends THREE.Mesh {
     this.material.polygonOffsetFactor = 1;
     this.material.polygonOffsetUnits = 1;
 
-   
-
     //
     this.setScale(1, 1, 1);
     this.scene.add(this);
-    this.hasTwoMeshes = hasTwoMeshes; 
-    if(hasTwoMeshes){
+    this.hasTwoMeshes = hasTwoMeshes;
+    if (hasTwoMeshes) {
       //outline object
-     this.outlineObject = this.solidify(this);
-     this.scene.add(this.outlineObject);
-    }
-    else{
+      this.outlineObject = this.solidify(this);
+      this.scene.add(this.outlineObject);
+    } else {
       //outline post processing
       this.scene.add(this.wireframe);
     }
 
+    this.isFloating = isFloating;
+    this.setRandomNumber();
   }
 
-  setSecondMesh(secondMesh: THREE.Mesh, texture = THREE.Texture.DEFAULT_IMAGE){
-    this.secondMesh = secondMesh;  
+  setRandomNumber() {
+    //for floating
+    this.randomNumber = Math.floor(Math.random() * 0.15);
+  }
+
+  setSecondMesh(secondMesh: THREE.Mesh, texture = THREE.Texture.DEFAULT_IMAGE) {
+    this.secondMesh = secondMesh;
     this.add(secondMesh);
 
-        //line object
-        var geo = new THREE.EdgesGeometry(this.secondMesh.geometry); 
-        const edgesMaterial = new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 100 });
-        this.wireframe = new THREE.LineSegments(geo, edgesMaterial);
-        this.scene.add(this.wireframe);
+    //line object
+    var geo = new THREE.EdgesGeometry(this.secondMesh.geometry);
+    const edgesMaterial = new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 100 });
+    this.wireframe = new THREE.LineSegments(geo, edgesMaterial);
+    this.scene.add(this.wireframe);
 
+    // second mesh material
+    this.materialSecondMesh.map = texture;
+    this.materialSecondMesh.colorWrite = true;
+    this.materialSecondMesh.polygonOffset = true;
+    this.materialSecondMesh.polygonOffsetFactor = 1;
+    this.materialSecondMesh.polygonOffsetUnits = 1;
 
-        // second mesh material
-        this.materialSecondMesh.map = texture;
-        this.materialSecondMesh.colorWrite = true;
-        this.materialSecondMesh.polygonOffset = true;
-        this.materialSecondMesh.polygonOffsetFactor = 1;
-        this.materialSecondMesh.polygonOffsetUnits = 1;
-    
-        this.secondMesh.material = this.materialSecondMesh;
-        //outline object
-        this.secondOutlineObject = this.solidify(secondMesh);
-        this.scene.add(this.secondOutlineObject);
-
+    this.secondMesh.material = this.materialSecondMesh;
+    //outline object
+    this.secondOutlineObject = this.solidify(secondMesh);
+    this.scene.add(this.secondOutlineObject);
   }
 
   lerp(from: number, to: number, speed: number) {
@@ -111,37 +118,37 @@ export default class Button extends THREE.Mesh {
   }
 
   //outline as a mesh
-    solidify = (mesh: THREE.Mesh) => {
-      const THICKNESS = 0.015;
-      const geometry = mesh.geometry;
-      this.outlineMaterial = new THREE.ShaderMaterial({
-        vertexShader: /* glsl */ `
+  solidify = (mesh: THREE.Mesh) => {
+    const THICKNESS = 0.01;
+    const geometry = mesh.geometry;
+    this.outlineMaterial = new THREE.ShaderMaterial({
+      vertexShader: /* glsl */ `
             void main() { 
               vec3 newPosition = position + normal  * ${THICKNESS};
               gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1);
             }
           `,
-        fragmentShader: /* glsl */ `
+      fragmentShader: /* glsl */ `
             void main() { 
               gl_FragColor = vec4(0,0,0,1);
             }
           `,
-  
-        side: THREE.BackSide,
-      });
 
-      return new THREE.Mesh(geometry, this.outlineMaterial);     
-    }
+      side: THREE.BackSide,
+    });
+
+    return new THREE.Mesh(geometry, this.outlineMaterial);
+  };
+
   update(delta: number, clock: THREE.Clock) {
     this.hovered ? this.material.color.lerp(this.colorTo, delta * 10) : this.material.color.lerp(this.defaultColor, delta * 10);
     this.clicked ? this.v.set(1.25, 1.25, 1.25) : this.v.set(1.0, 1.0, 1.0);
     this.clicked ? (this.material.colorWrite = true) : (this.material.colorWrite = false);
-    if (this.hasTwoMeshes)
-    {
+    if (this.hasTwoMeshes) {
       this.clicked ? (this.wireframe.visible = false) : (this.wireframe.visible = true);
       this.clicked ? (this.materialSecondMesh.colorWrite = true) : (this.materialSecondMesh.colorWrite = false);
     }
-   
+
     this.scale.lerp(
       new THREE.Vector3(this.v.x * this.defaultScale.x, this.v.y * this.defaultScale.y, this.v.z * this.defaultScale.z),
       delta * 5
@@ -158,5 +165,23 @@ export default class Button extends THREE.Mesh {
       new THREE.Vector3(this.v.x * this.defaultScale.x, this.v.y * this.defaultScale.y, this.v.z * this.defaultScale.z),
       delta * 5
     );
+
+    if (this.isFloating) {
+      this.position.y = Math.sin(clock.getElapsedTime()) * (this.randomNumber + 0.15) + this.defaultPosition.y;
+      this.wireframe.position.y = Math.sin(clock.getElapsedTime()) * (this.randomNumber + 0.15) + this.defaultPosition.y;
+      this.outlineObject.position.y = Math.sin(clock.getElapsedTime()) * (this.randomNumber + 0.15) + this.defaultPosition.y;
+      if (this.hasTwoMeshes) {
+        this.secondOutlineObject.position.y = Math.sin(clock.getElapsedTime()) * (this.randomNumber + 0.15) + this.defaultPosition.y;
+        this.wireframeSecondMesh.position.y = Math.sin(clock.getElapsedTime()) * (this.randomNumber + 0.15) + this.defaultPosition.y;
+      }
+    } else {
+      this.position.y = this.defaultPosition.y;
+      this.wireframe.position.y = this.defaultPosition.y;
+      this.outlineObject.position.y = this.defaultPosition.y;
+      if (this.hasTwoMeshes) {
+        this.secondOutlineObject.position.y = this.defaultPosition.y;
+        this.wireframeSecondMesh.position.y = this.defaultPosition.y;
+      }
+    }
   }
 }

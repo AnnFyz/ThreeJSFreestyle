@@ -183,8 +183,9 @@ export default class Level_1 {
         buttonMesh.geometry,
         new THREE.MeshToonMaterial({ color: 0xffffff }),
         new THREE.Color(0xeeeeee),
-        platformTexture,
-        false
+        false,
+        false,
+        platformTexture
       );
       button.setScale(1, 1, 1);
       // @ts-ignore
@@ -345,5 +346,13 @@ export default class Level_1 {
     });
 
     this.mixer.update(delta);
+  }
+
+  removeAllObjects(){
+
+  }
+
+  deactivateAllTexts(){
+
   }
 }

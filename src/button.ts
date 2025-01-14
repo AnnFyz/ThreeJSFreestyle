@@ -64,10 +64,10 @@ export default class Button extends THREE.Mesh {
     if (hasTwoMeshes) {
       //outline object
       this.outlineObject = this.solidify(this);
-      this.scene.add(this.outlineObject);
+      this.add(this.outlineObject);
     } else {
       //outline post processing
-      this.scene.add(this.wireframe);
+      this.add(this.wireframe);
     }
 
     this.isFloating = isFloating;
@@ -81,13 +81,13 @@ export default class Button extends THREE.Mesh {
 
   setSecondMesh(secondMesh: THREE.Mesh, texture = THREE.Texture.DEFAULT_IMAGE) {
     this.secondMesh = secondMesh;
-    this.add(secondMesh);
+    this.add(this.secondMesh);
 
     //line object
     var geo = new THREE.EdgesGeometry(this.secondMesh.geometry);
     const edgesMaterial = new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 100 });
-    this.wireframe = new THREE.LineSegments(geo, edgesMaterial);
-    this.scene.add(this.wireframe);
+    this.wireframeSecondMesh = new THREE.LineSegments(geo, edgesMaterial);
+    this.add(this.wireframeSecondMesh);
 
     // second mesh material
     this.materialSecondMesh.map = texture;
@@ -99,7 +99,7 @@ export default class Button extends THREE.Mesh {
     this.secondMesh.material = this.materialSecondMesh;
     //outline object
     this.secondOutlineObject = this.solidify(secondMesh);
-    this.scene.add(this.secondOutlineObject);
+    this.add(this.secondOutlineObject);
   }
 
   lerp(from: number, to: number, speed: number) {
@@ -109,12 +109,20 @@ export default class Button extends THREE.Mesh {
 
   setScale(x: number, y: number, z: number) {
     this.scale.set(x, y, z);
+    //this.wireframe.scale.set(x, y, z);
     this.defaultScale = new THREE.Vector3(x, y, z);
+    if(this.hasTwoMeshes){
+      //this.wireframeSecondMesh.scale.set(x, y, z);
+    }
   }
 
   setPosition(x: number, y: number, z: number) {
     this.position.set(x, y, z);
+    //this.wireframe.position.set(x, y, z);
     this.defaultPosition = new THREE.Vector3(x, y, z);
+    if(this.hasTwoMeshes){
+     // this.wireframeSecondMesh.position.set(x, y, z);
+    }
   }
 
   //outline as a mesh
@@ -153,35 +161,32 @@ export default class Button extends THREE.Mesh {
       new THREE.Vector3(this.v.x * this.defaultScale.x, this.v.y * this.defaultScale.y, this.v.z * this.defaultScale.z),
       delta * 5
     );
-    this.wireframe.scale.lerp(
-      new THREE.Vector3(this.v.x * this.defaultScale.x, this.v.y * this.defaultScale.y, this.v.z * this.defaultScale.z),
-      delta * 5
-    );
-    this.outlineObject.scale.lerp(
-      new THREE.Vector3(this.v.x * this.defaultScale.x, this.v.y * this.defaultScale.y, this.v.z * this.defaultScale.z),
-      delta * 5
-    );
-    this.secondOutlineObject.scale.lerp(
-      new THREE.Vector3(this.v.x * this.defaultScale.x, this.v.y * this.defaultScale.y, this.v.z * this.defaultScale.z),
-      delta * 5
-    );
 
-    if (this.isFloating) {
-      this.position.y = Math.sin(clock.getElapsedTime()) * (this.randomNumber + 0.15) + this.defaultPosition.y;
-      this.wireframe.position.y = Math.sin(clock.getElapsedTime()) * (this.randomNumber + 0.15) + this.defaultPosition.y;
-      this.outlineObject.position.y = Math.sin(clock.getElapsedTime()) * (this.randomNumber + 0.15) + this.defaultPosition.y;
-      if (this.hasTwoMeshes) {
-        this.secondOutlineObject.position.y = Math.sin(clock.getElapsedTime()) * (this.randomNumber + 0.15) + this.defaultPosition.y;
-        this.wireframeSecondMesh.position.y = Math.sin(clock.getElapsedTime()) * (this.randomNumber + 0.15) + this.defaultPosition.y;
-      }
-    } else {
-      this.position.y = this.defaultPosition.y;
-      this.wireframe.position.y = this.defaultPosition.y;
-      this.outlineObject.position.y = this.defaultPosition.y;
-      if (this.hasTwoMeshes) {
-        this.secondOutlineObject.position.y = this.defaultPosition.y;
-        this.wireframeSecondMesh.position.y = this.defaultPosition.y;
-      }
-    }
+    // this.wireframe.scale.lerp(
+    //   new THREE.Vector3(this.v.x * this.defaultScale.x, this.v.y * this.defaultScale.y, this.v.z * this.defaultScale.z),
+    //   delta * 5
+    // );
+
+    // if (this.hasTwoMeshes) {
+    //   this.wireframeSecondMesh.scale.lerp(
+    //     new THREE.Vector3(this.v.x * this.defaultScale.x, this.v.y * this.defaultScale.y, this.v.z * this.defaultScale.z),
+    //     delta * 5
+    //   );
+    // }
+
+    // if (this.isFloating) {
+    //   this.position.y = Math.sin(clock.getElapsedTime()) * (this.randomNumber + 0.15) + this.defaultPosition.y;
+    //   this.wireframe.position.y = Math.sin(clock.getElapsedTime()) * (this.randomNumber + 0.15) + this.defaultPosition.y;
+    //   // this.outlineObject.position.y = Math.sin(clock.getElapsedTime()) * (this.randomNumber + 0.15) + this.defaultPosition.y;
+    //   if (this.hasTwoMeshes) {
+    //     // this.wireframeSecondMesh.position.y = Math.sin(clock.getElapsedTime()) * (this.randomNumber + 0.15) + this.defaultPosition.y;
+    //   }
+    // } else {
+    //   this.position.y = this.defaultPosition.y;
+    //   this.wireframe.position.y = this.defaultPosition.y;
+    //   if (this.hasTwoMeshes) {
+    //     //this.wireframeSecondMesh.position.y = this.defaultPosition.y;
+    //   }
+    // }
   }
 }

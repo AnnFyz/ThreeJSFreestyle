@@ -150,7 +150,7 @@ export default class Level_2 {
 
     // Create the sprite
     const sprite = new THREE.Sprite(spriteMaterial);
-    sprite.position.set(0, 1.65, -2);
+    sprite.position.set(0, 2, -2);
     sprite.scale.set(2.2, 1.25, 1);
     // Add the sprite to your scene, etc.
     this.scene.add(sprite);
@@ -226,33 +226,6 @@ export default class Level_2 {
       this.universalController_1_1 = this.universalController_parent.children[1] as THREE.Mesh;
       this.universalController_1_2 = this.universalController_parent.children[0] as THREE.Mesh;
 
-      let material_1 = new THREE.MeshToonMaterial({ color: 0xffffff });
-      material_1.map = this.controller_1_1_texture;
-      this.universalController_1_1.material = material_1;
-
-      let material_2 = new THREE.MeshToonMaterial({ color: 0xffffff });
-      material_2.map = this.controller_1_2_texture;
-      this.universalController_1_2.material = material_2;
-
-      // let geo_1 = new THREE.EdgesGeometry(this.universalController_1_1.geometry);
-      // const edgesMaterial_1 = new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 10 });
-      // this.universalController_wire_1_1 = new THREE.LineSegments(geo_1, edgesMaterial_1);
-      // material_1.colorWrite = false;
-      // material_1.polygonOffset = true;
-      // material_1.polygonOffsetFactor = 1;
-      // material_1.polygonOffsetUnits = 1;
-
-      // let geo_2 = new THREE.EdgesGeometry(this.universalController_1_2.geometry);
-      // const edgesMaterial_2 = new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 10 });
-      // this.universalController_wire_1_2 = new THREE.LineSegments(geo_2, edgesMaterial_2);
-      // material_2.colorWrite = false;
-      // material_2.polygonOffset = true;
-      // material_2.polygonOffsetFactor = 1;
-      // material_2.polygonOffsetUnits = 1;
-
-      // this.interactableObj.push(this.universalController_1_1);
-      // this.interactableObj.push(this.universalController_1_2);
-
       const button = new Button(
         this.scene,
         this.universalController_1_2.geometry,
@@ -264,6 +237,7 @@ export default class Level_2 {
       );
 
       button.setSecondMesh(this.universalController_1_1, this.controller_1_1_texture);
+      button.setPosition(1, 0, 0);
       this.buttons.push(button);
       console.log(button);
       // @ts-ignore
@@ -301,7 +275,7 @@ export default class Level_2 {
     let buttons = this.buttons;
     const loader = new FontLoader();
     loader.load("fonts/Play_Regular.json", function (font) {
-      textGeo = new TextGeometry("Meta Quest\n3", {
+      textGeo = new TextGeometry("Meta Quest\n          3", {
         font: font,
         size: 1,
         height: 0.25,
@@ -334,7 +308,10 @@ export default class Level_2 {
         false,
         true
       );
+
       buttons.push(button);
+      button.setScale(0.25, 0.25, 0.25);
+      button.setPosition(-1, 1, 0);
     });
   }
   setupButtonInteractions() {

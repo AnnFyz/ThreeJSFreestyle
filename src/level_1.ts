@@ -173,8 +173,6 @@ export default class Level_1 {
     platformTexture.magFilter = THREE.NearestFilter;
     platformTexture.minFilter = THREE.NearestFilter;
     platformTexture.flipY = false;
-    //platformTexture.map.premultiplyAlpha = false;
-    //platformTexture.map.needsUpdate = true;
 
     new GLTFLoader().load("scene_1/models/Platform_1_3.glb", (gltf) => {
       const buttonMesh = gltf.scene.getObjectByName("platform_1") as THREE.Mesh;
@@ -191,7 +189,6 @@ export default class Level_1 {
       // @ts-ignore
       this.buttons.push(button);
       this.scene.add(button);
-      this.scene.add(button.wireframe);
     });
 
     this.renderer.domElement.addEventListener("mousemove", (e) => {
@@ -205,11 +202,11 @@ export default class Level_1 {
       this.buttons.forEach((p) => {
         p.hovered = false;
         const index = this.outlinePass.selectedObjects.indexOf(p);
-        if (index > -1) { // only splice array when item is found
+        if (index > -1) {
+          // only splice array when item is found
           this.outlinePass.selectedObjects.splice(index, 1); // 2nd parameter means remove one item only
         }
-        
-        
+
         document.querySelector(".intro")?.classList.remove("highlighted");
         document.querySelector(".fade-out")?.classList.remove("fade-out");
         document.body.style.cursor = "default";
@@ -249,27 +246,6 @@ export default class Level_1 {
       }
     });
   }
-
-  //outline as a mesh 
-  solidify = (mesh: THREE.Mesh) => {
-    const geometry = mesh.geometry;
-    this.outlineMaterial = new THREE.ShaderMaterial({
-      vertexShader: /* glsl */ `
-        void main() { 
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-        }
-      `,
-      fragmentShader: /* glsl */ `
-        void main() { 
-          gl_FragColor = vec4(1,0,0,1);
-        }
-      `,
-    });
-
-    const outline = new THREE.Mesh(geometry, this.outlineMaterial);
-    //this.scene.add(outline);
-  };
-
   // loading pop model and animations
   async loadAssync() {
     const scalar = 0.5;

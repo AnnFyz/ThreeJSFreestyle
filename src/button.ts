@@ -153,7 +153,7 @@ export default class Button extends THREE.Mesh {
     this.clicked ? this.v.set(1.25, 1.25, 1.25) : this.v.set(1.0, 1.0, 1.0);
     this.clicked ? (this.material.colorWrite = true) : (this.material.colorWrite = false);
     if (this.hasTwoMeshes) {
-      this.clicked ? (this.wireframe.visible = false) : (this.wireframe.visible = true);
+      this.clicked ? (this.wireframeSecondMesh.visible = false) : (this.wireframeSecondMesh.visible = true);
       this.clicked ? (this.materialSecondMesh.colorWrite = true) : (this.materialSecondMesh.colorWrite = false);
     }
 

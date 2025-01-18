@@ -21,7 +21,7 @@ export default class Level_2 {
   raycaster: THREE.Raycaster;
   interactableObj: any[] = [];
   mouse: THREE.Vector2;
-
+  isActiveScene = false;
   //light
   ambientLight = new THREE.AmbientLight(0xffffff, 2);
   pointLight = new THREE.PointLight(0xffffff, 50);
@@ -73,25 +73,18 @@ export default class Level_2 {
     this.effectFXAA.uniforms["resolution"].value.set(1 / window.innerWidth, 1 / window.innerHeight);
     this.composer = new EffectComposer(renderer);
 
-    //
-
     this.init();
-    // const geometry = new THREE.BoxGeometry(1, 1, 1);
-    // const material = new THREE.MeshBasicMaterial({ color: 0x123456 });
-    // this.cube = new THREE.Mesh(geometry, material);
-    // this.scene.add(this.cube);
   }
 
   init() {
-    this.createGridCameraUI();
+    //this.createGridCameraUI();
     this.createBackground();
     this.createLight();
     this.createTextMesh();
     this.createOutlines();
     this.createImage();
     this.createControllers();
-    this.createInteractions();
-    this.setupButtonInteractions();
+    // this.setupButtonInteractions();
   }
 
   createGridCameraUI() {
@@ -239,29 +232,6 @@ export default class Level_2 {
       button.setSecondMesh(this.universalController_1_1, this.controller_1_1_texture);
       button.setPosition(1, 0, 0);
       this.buttons.push(button);
-      console.log(button);
-      // @ts-ignore
-    });
-  }
-
-  createInteractions() {
-    this.renderer.domElement.addEventListener("mousemove", (e) => {
-      const intersects = this.raycaster.intersectObjects(this.interactableObj, false);
-      this.mouse.set(
-        (e.clientX / this.renderer.domElement.clientWidth) * 2 - 1,
-        -(e.clientY / this.renderer.domElement.clientHeight) * 2 + 1
-      );
-      this.raycaster.setFromCamera(this.mouse, this.camera);
-      this.interactableObj.forEach((o) => {
-        const index = this.outlinePass.selectedObjects.indexOf(o);
-        if (index > -1) {
-          // only splice array when item is found
-          this.outlinePass.selectedObjects.splice(index, 1); // 2nd parameter means remove one item only
-        }
-      });
-      if (intersects.length) {
-        this.outlinePass.selectedObjects.push(intersects[0].object);
-      }
     });
   }
 
@@ -314,6 +284,7 @@ export default class Level_2 {
       button.setPosition(-1, 1, 0);
     });
   }
+
   setupButtonInteractions() {
     this.renderer.domElement.addEventListener("mousemove", (e) => {
       const intersects = this.raycaster.intersectObjects(this.buttons, false);
@@ -330,14 +301,12 @@ export default class Level_2 {
           // only splice array when item is found
           this.outlinePass.selectedObjects.splice(index, 1); // 2nd parameter means remove one item only
         }
-
         document.querySelector(".intro")?.classList.remove("highlighted");
         document.querySelector(".fade-out")?.classList.remove("fade-out");
         document.body.style.cursor = "default";
       });
       if (intersects.length) {
         (intersects[0].object as Button).hovered = true;
-        //this.outlinePass.selectedObjects.push(intersects[0].object);
         this.outlinePass.selectedObjects.push(intersects[0].object);
         document.querySelector(".intro")?.classList.add("highlighted");
         document.body.style.cursor = "pointer";

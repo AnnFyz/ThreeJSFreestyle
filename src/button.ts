@@ -1,6 +1,4 @@
 import * as THREE from "three";
-//import { OutlinePass } from "three/examples/jsm/postprocessing/OutlinePass.js";
-//import { MathUtils } from "three/src/math/MathUtils.js";
 
 export default class Button extends THREE.Mesh {
   scene: THREE.Scene;
@@ -25,10 +23,14 @@ export default class Button extends THREE.Mesh {
   wireframeSecondMesh: any;
   textureSecondMesh: any;
   materialSecondMesh = new THREE.MeshToonMaterial();
-
   //floating
   randomNumber = Math.floor(Math.random() * 0.25);
   isFloating = false;
+  //callback functions
+  firstCallbackFunction = () => {};
+  secondCallbackFunction = () => {};
+  thirdCallbackFunction = () => {};
+
   constructor(
     scene: THREE.Scene,
     geometry: THREE.BufferGeometry,
@@ -109,19 +111,15 @@ export default class Button extends THREE.Mesh {
 
   setScale(x: number, y: number, z: number) {
     this.scale.set(x, y, z);
-    //this.wireframe.scale.set(x, y, z);
     this.defaultScale = new THREE.Vector3(x, y, z);
-    if(this.hasTwoMeshes){
-      //this.wireframeSecondMesh.scale.set(x, y, z);
+    if (this.hasTwoMeshes) {
     }
   }
 
   setPosition(x: number, y: number, z: number) {
     this.position.set(x, y, z);
-    //this.wireframe.position.set(x, y, z);
     this.defaultPosition = new THREE.Vector3(x, y, z);
-    if(this.hasTwoMeshes){
-     // this.wireframeSecondMesh.position.set(x, y, z);
+    if (this.hasTwoMeshes) {
     }
   }
 
@@ -161,32 +159,5 @@ export default class Button extends THREE.Mesh {
       new THREE.Vector3(this.v.x * this.defaultScale.x, this.v.y * this.defaultScale.y, this.v.z * this.defaultScale.z),
       delta * 5
     );
-
-    // this.wireframe.scale.lerp(
-    //   new THREE.Vector3(this.v.x * this.defaultScale.x, this.v.y * this.defaultScale.y, this.v.z * this.defaultScale.z),
-    //   delta * 5
-    // );
-
-    // if (this.hasTwoMeshes) {
-    //   this.wireframeSecondMesh.scale.lerp(
-    //     new THREE.Vector3(this.v.x * this.defaultScale.x, this.v.y * this.defaultScale.y, this.v.z * this.defaultScale.z),
-    //     delta * 5
-    //   );
-    // }
-
-    // if (this.isFloating) {
-    //   this.position.y = Math.sin(clock.getElapsedTime()) * (this.randomNumber + 0.15) + this.defaultPosition.y;
-    //   this.wireframe.position.y = Math.sin(clock.getElapsedTime()) * (this.randomNumber + 0.15) + this.defaultPosition.y;
-    //   // this.outlineObject.position.y = Math.sin(clock.getElapsedTime()) * (this.randomNumber + 0.15) + this.defaultPosition.y;
-    //   if (this.hasTwoMeshes) {
-    //     // this.wireframeSecondMesh.position.y = Math.sin(clock.getElapsedTime()) * (this.randomNumber + 0.15) + this.defaultPosition.y;
-    //   }
-    // } else {
-    //   this.position.y = this.defaultPosition.y;
-    //   this.wireframe.position.y = this.defaultPosition.y;
-    //   if (this.hasTwoMeshes) {
-    //     //this.wireframeSecondMesh.position.y = this.defaultPosition.y;
-    //   }
-    // }
   }
 }

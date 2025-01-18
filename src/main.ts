@@ -33,7 +33,10 @@ document.onkeydown = function (e) {
   e = e || window.event;
   if (e.shiftKey) {
     currentScene = scenes.SecondScene;
+    level_1.deactivateAllTexts();
     activeScene = level_2.scene;
+    level_2.setupButtonInteractions();
+    updateCamerandRenderer();
   }
 };
 
@@ -42,18 +45,22 @@ document.addEventListener("StartNewScene", () => {
 });
 
 window.addEventListener("resize", () => {
+  updateCamerandRenderer();
+});
+
+function updateCamerandRenderer() {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
-  
 
   if (currentScene == scenes.FirstScene) {
     level_1.composer.setSize(window.innerWidth, window.innerHeight);
     level_1.effectFXAA.uniforms["resolution"].value.set(1 / window.innerWidth, 1 / window.innerHeight);
   } else if (currentScene == scenes.SecondScene) {
     level_2.composer.setSize(window.innerWidth, window.innerHeight);
-    level_2.effectFXAA.uniforms["resolution"].value.set(1 / window.innerWidth, 1 / window.innerHeight); }
-});
+    level_2.effectFXAA.uniforms["resolution"].value.set(1 / window.innerWidth, 1 / window.innerHeight);
+  }
+}
 
 
 const controls = new OrbitControls(camera, renderer.domElement);

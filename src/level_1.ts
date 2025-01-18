@@ -168,12 +168,14 @@ export default class Level_1 {
   }
 
   createButton() {
+    // texture for button as a platform
     const platformTexture = new THREE.TextureLoader().load("scene_1/img/Platform_1_3.png");
     platformTexture.premultiplyAlpha = false;
     platformTexture.magFilter = THREE.NearestFilter;
     platformTexture.minFilter = THREE.NearestFilter;
     platformTexture.flipY = false;
 
+    // create button as a platform
     new GLTFLoader().load("scene_1/models/Platform_1_3.glb", (gltf) => {
       const buttonMesh = gltf.scene.getObjectByName("platform_1") as THREE.Mesh;
       const button = new Button(
@@ -186,7 +188,6 @@ export default class Level_1 {
         platformTexture
       );
       button.setScale(1, 1, 1);
-      // @ts-ignore
       this.buttons.push(button);
       this.scene.add(button);
     });
@@ -199,6 +200,7 @@ export default class Level_1 {
       );
       this.raycaster.setFromCamera(this.mouse, this.camera);
 
+      //if there no mouse raycast on the button, don't outline it
       this.buttons.forEach((p) => {
         p.hovered = false;
         const index = this.outlinePass.selectedObjects.indexOf(p);
@@ -213,7 +215,6 @@ export default class Level_1 {
       });
       if (intersects.length) {
         (intersects[0].object as Button).hovered = true;
-        //this.outlinePass.selectedObjects.push(intersects[0].object);
         this.outlinePass.selectedObjects.push(intersects[0].object);
         document.querySelector(".intro")?.classList.add("highlighted");
         document.body.style.cursor = "pointer";
@@ -233,9 +234,10 @@ export default class Level_1 {
 
       // toggles `clicked` property for only the Pickable closest to the camera
       if (intersects.length) {
-        console.log("was clicked" + (intersects[0].object as Button).clicked);
         (intersects[0].object as Button).clicked = !(intersects[0].object as Button).clicked;
         document.querySelector(".intro")?.classList.add("hidden");
+
+        //checks the click's number
         if (this.currentMouseClickEvent == this.mouseClickEvent.FirstClickEvent) {
           this.startPopAnimation();
           this.currentMouseClickEvent = this.mouseClickEvent.SecondClickEvent;
@@ -324,11 +326,18 @@ export default class Level_1 {
     this.mixer.update(delta);
   }
 
+  startNewScene(){
+
+  }
+
   removeAllObjects(){
 
   }
 
   deactivateAllTexts(){
-
-  }
+  const texts  =document.querySelectorAll(".level_1")
+  texts.forEach((text) => {
+    text?.classList.add("hidden");
+  });
+}
 }

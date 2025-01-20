@@ -4,7 +4,7 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import Stats from "three/addons/libs/stats.module.js";
 import Level_1 from "./level_1";
 import Level_2 from "./level_2";
-
+import Level_3 from "./level_3";
 
 //Project setup
 const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 100);
@@ -19,15 +19,17 @@ const mouse = new THREE.Vector2();
 const scenes = {
   FirstScene: "FirstScene",
   SecondScene: "SecondScene",
+  ThirdScene: "ThirdScene",
   None: "None",
 };
 
-
 const level_1 = new Level_1(camera, renderer, raycaster, mouse);
 const level_2 = new Level_2(camera, renderer, raycaster, mouse);
+const level_3 = new Level_3(camera, renderer, raycaster, mouse);
 await level_1.loadAssync();
-let currentScene = scenes.FirstScene;
-let activeScene = level_1.scene;
+await level_3.loadAssync();
+let currentScene = scenes.ThirdScene;
+let activeScene = level_3.scene;
 
 document.onkeydown = function (e) {
   e = e || window.event;
@@ -42,6 +44,7 @@ document.onkeydown = function (e) {
 
 document.addEventListener("StartNewScene", () => {
   currentScene = scenes.SecondScene;
+  level_2.setupButtonInteractions();
 });
 
 window.addEventListener("resize", () => {
@@ -59,9 +62,11 @@ function updateCamerandRenderer() {
   } else if (currentScene == scenes.SecondScene) {
     level_2.composer.setSize(window.innerWidth, window.innerHeight);
     level_2.effectFXAA.uniforms["resolution"].value.set(1 / window.innerWidth, 1 / window.innerHeight);
+  } else if (currentScene == scenes.ThirdScene) {
+    level_3.composer.setSize(window.innerWidth, window.innerHeight);
+    level_3.effectFXAA.uniforms["resolution"].value.set(1 / window.innerWidth, 1 / window.innerHeight);
   }
 }
-
 
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
@@ -91,8 +96,10 @@ function animate() {
   } else if (currentScene == scenes.SecondScene) {
     level_2.composer.render();
     level_2.updateLoop(delta, clock);
+  } else if (currentScene == scenes.ThirdScene) {
+    level_3.composer.render();
+    level_3.updateLoop(delta, clock);
   }
-
   controls.update();
   stats.update();
 }

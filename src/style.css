@@ -6,7 +6,8 @@
 } 
 
 
-.intro {
+/* texts for 1 level */
+.first {
   position: absolute;
   margin-left: auto;
   margin-right: auto;
@@ -26,6 +27,88 @@
   color: black;
   padding: 0.25em 0.5em;
 }
+.second {
+  position: absolute;
+  margin-left: auto;
+  margin-right: auto;
+  /* margin-top: auto;
+  margin-bottom: auto; */
+  left: 0;
+  right: 60%;
+  top: 30%;
+  /* bottom:0;  */
+  width:12%;
+  font-family: "Open Sans", sans-serif;
+  font-size: 16px;
+  letter-spacing: 2px;
+  text-decoration: none;
+  text-transform: lowercase;
+  text-align: left;
+  color: black;
+  padding: 0.25em 0.5em;
+}
+
+/* texts for 2 level */
+.center {
+  position: absolute;
+  margin-left: auto;
+  margin-right: auto;
+  /* margin-top: auto;
+  margin-bottom: auto; */
+  left: 0;
+  right: 0;
+  top: 60%;
+  /* bottom:0;  */
+  width:12%;
+  font-family: "Open Sans", sans-serif;
+  font-size: 16px;
+  letter-spacing: 2px;
+  text-decoration: none;
+  text-transform: lowercase;
+  text-align: center;
+  color: black;
+  padding: 0.25em 0.5em;
+}
+.right {
+  position: absolute;
+  margin-left: auto;
+  margin-right: auto;
+  /* margin-top: auto;
+  margin-bottom: auto; */
+  left: 60%;
+  right: 0;
+  top: 30%;
+  /* bottom:0;  */
+  width:12%;
+  font-family: "Open Sans", sans-serif;
+  font-size: 16px;
+  letter-spacing: 2px;
+  text-decoration: none;
+  text-transform: lowercase;
+  text-align: center;
+  color: black;
+  padding: 0.25em 0.5em;
+}
+.left {
+  position: absolute;
+  margin-left: auto;
+  margin-right: auto;
+  /* margin-top: auto;
+  margin-bottom: auto; */
+  left: 0;
+  right: 60%;
+  top: 30%;
+  /* bottom:0;  */
+  width:12%;
+  font-family: "Open Sans", sans-serif;
+  font-size: 16px;
+  letter-spacing: 2px;
+  text-decoration: none;
+  text-transform: lowercase;
+  text-align: left;
+  color: black;
+  padding: 0.25em 0.5em;
+}
 
 .highlighted {
 
@@ -36,9 +119,9 @@
 }
 
 @keyframes hide {
-  25% {
-   display: block;
-  }
+  0% {
+    display: block;
+   }
   
   100% {
     display: none;
@@ -46,7 +129,7 @@
 } 
 
 
-#overlay {
+.overlay-fade-out {
   position: fixed; /* Sit on top of the page content */
   display: none; /* Hidden by default */
   width: 100%; /* Full width (cover the whole page) */
@@ -62,16 +145,42 @@
   animation-name: fade-out, hide;
   animation-duration: 1.5s;
   animation-fill-mode: forwards;
+  animation-timing-function: linear;
 }
 
+.overlay-fade-in {
+  position: fixed; /* Sit on top of the page content */
+  display: none; /* Hidden by default */
+  width: 100%; /* Full width (cover the whole page) */
+  height: 100%; /* Full height (cover the whole page) */
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #62acd6; /* Black background with opacity */
+  z-index: 2; /* Specify a stack order in case you're using a different order for other elements */
+  /* cursor: pointer; Add a pointer on hover */
+  display:block; 
+  animation-name: fade-in;
+  animation-duration: 1s;
+  animation-fill-mode: forwards;
+  animation-timing-function: linear;
+}
 
 @keyframes fade-in-slide {
+  0% {
+    opacity: 0;
+    transform: translateY(-45%);
+  }
   25% {
     opacity: 0;
-    transform: translateY(-40%);
+    transform: translateY(-45%);
   }
-  
   75% {
+    opacity: 100;
+    transform: translateY(0%);
+  }
+  100% {
     opacity: 100;
     transform: translateY(0%);
   }
@@ -79,16 +188,16 @@
 
 .fade-in-slide {
   animation-name: fade-in-slide;
-  animation-duration: 2.5s;
+  animation-duration:2s;
   animation-fill-mode: forwards;
-  animation-delay: 1;
+  animation-delay: 0s;
 }
 
 @keyframes fade-out {
-  25% {
+  0% {
     opacity: 100;
   }
-  
+
   75% {
     opacity: 0;
   }
@@ -100,11 +209,15 @@
 
 .fade-out {
   animation-name: fade-out;
-  animation-duration: 0.5s;
+  animation-duration: 0.75s;
   animation-fill-mode: forwards;
+  
 }
 
 @keyframes fade-in {
+  0% {
+    opacity: 0;
+  }
   25% {
     opacity: 0;
   }
@@ -114,12 +227,12 @@
   }
 
   100% {
-    opacity: 0;
+    opacity: 100;
   }
 } 
 
 .fade-in {
   animation-name: fade-in;
-  animation-duration:0.5s;
+  animation-duration:0.75s;
   animation-fill-mode: forwards;
 }

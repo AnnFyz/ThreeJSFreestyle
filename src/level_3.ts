@@ -11,7 +11,7 @@ import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
 import { FXAAShader } from "three/examples/jsm/shaders/FXAAShader.js";
 
-export default class Level_1 {
+export default class Level_3 {
   scene = new THREE.Scene();
   camera: THREE.PerspectiveCamera;
   renderer: THREE.WebGLRenderer;
@@ -25,7 +25,6 @@ export default class Level_1 {
   animationActions: { [key: string]: THREE.AnimationAction } = {};
   activeAction: THREE.AnimationAction = this.animationActions[""];
   idleScene: THREE.Group<THREE.Object3DEventMap>;
-  idleLoop = this.onFinishedAnimation.bind(this);
 
   mouseClickEvent = {
     FirstClickEvent: "FirstClickEvent",
@@ -43,11 +42,19 @@ export default class Level_1 {
   outlinePass_2: OutlinePass;
 
   //materials
-  meshToonMaterial = new THREE.MeshToonMaterial();
   outlineMaterial = new THREE.ShaderMaterial();
-  popMesh = new THREE.Mesh();
 
+  catMeshToonMaterial = new THREE.MeshToonMaterial();
+  catMesh = new THREE.Mesh();
+  catTexture: any;
+
+  bubbleMeshToonMaterial = new THREE.MeshToonMaterial();
+  bubbleMesh = new THREE.Mesh();
+  bubbleTexture: any;
+
+  //events
   event = new Event("StartNewScene");
+
   constructor(camera: THREE.PerspectiveCamera, renderer: THREE.WebGLRenderer, raycaster: THREE.Raycaster, mouse: THREE.Vector2) {
     this.camera = camera;
     this.renderer = renderer;
@@ -85,18 +92,20 @@ export default class Level_1 {
   init() {
     //this.createGridCameraUI();
     this.createBackground();
-    this.createButton();
+    this.createStarButton();
     this.createLight();
     this.createOutlines();
+    this.createBubbleSpeech();
+    //this.createStar();
   }
 
   //outline as a postprocessing
   createOutlines() {
     this.composer.addPass(this.renderPass);
     // -- parameter config
-    this.outlinePass.edgeStrength = 3.0;
+    this.outlinePass.edgeStrength = 7.0;
     this.outlinePass.edgeGlow = 0;
-    this.outlinePass.edgeThickness = 3.0;
+    this.outlinePass.edgeThickness = 7.0;
     this.outlinePass.pulsePeriod = 0;
     this.outlinePass.usePatternTexture = false; // patter texture for an object mesh
     this.outlinePass.visibleEdgeColor.set("#ffffff"); // set basic edge color
@@ -167,30 +176,31 @@ export default class Level_1 {
   }
 
   //here are set all button interactions
-  createButton() {
+  createStarButton() {
     // texture for button as a platform
-    const platformTexture = new THREE.TextureLoader().load("scene_1/img/Platform_1_3.png");
+    const platformTexture = new THREE.TextureLoader().load("scene_3/img/star/Star_base.png");
     platformTexture.premultiplyAlpha = false;
     platformTexture.magFilter = THREE.NearestFilter;
     platformTexture.minFilter = THREE.NearestFilter;
     platformTexture.flipY = false;
 
     // create button as a platform
-    new GLTFLoader().load("scene_1/models/Platform_1_3.glb", (gltf) => {
-      const buttonMesh = gltf.scene.getObjectByName("platform_1") as THREE.Mesh;
+    new GLTFLoader().load("scene_3/models/Star.glb", (gltf) => {
+      const buttonMesh = gltf.scene.getObjectByName("Star") as THREE.Mesh;
       const button = new Button(
-        "Platform",
+        "Star",
         this.scene,
         buttonMesh.geometry,
-        new THREE.MeshToonMaterial({ color: 0xffffff }),
+        new THREE.MeshToonMaterial({ color: 0xffff00 }),
         new THREE.Color(0xeeeeee),
         false,
-        false,
-        0.015,
+        true,
+        0.045,
         false,
         platformTexture
       );
-      button.setScale(1, 1, 1);
+      button.setScale(0.35, 0.35, 0.35);
+      button.setPosition(2, 0, 1);
       this.buttons.push(button);
       this.scene.add(button);
     });
@@ -211,15 +221,12 @@ export default class Level_1 {
           // only splice array when item is found
           this.outlinePass.selectedObjects.splice(index, 1); // 2nd parameter means remove one item only
         }
-        document.querySelector(".first")?.classList.remove("fade-out");
         document.body.style.cursor = "default";
       });
       if (intersects.length) {
         (intersects[0].object as Button).hovered = true;
         this.outlinePass.selectedObjects.push(intersects[0].object);
         document.body.style.cursor = "pointer";
-        document.querySelector(".first")?.classList.remove("fade-in-slide");
-        document.querySelector(".first")?.classList.add("fade-out");
       }
     });
 
@@ -234,89 +241,71 @@ export default class Level_1 {
       // toggles `clicked` property for only the Pickable closest to the camera
       if (intersects.length) {
         (intersects[0].object as Button).clicked = !(intersects[0].object as Button).clicked;
-
+        this.switchCatTexture();
         //checks the click's number
         if (this.currentMouseClickEvent == this.mouseClickEvent.FirstClickEvent) {
-          this.startPopAnimation();
           this.currentMouseClickEvent = this.mouseClickEvent.SecondClickEvent;
-          document.querySelector(".first")?.classList.add("hidden");
-          document.querySelector(".second")?.classList.remove("hidden");
-          document.querySelector(".second")?.classList.add("fade-in-slide");
         } else if (this.currentMouseClickEvent == this.mouseClickEvent.SecondClickEvent) {
-          this.switchPopAnimation();
-          this.currentMouseClickEvent = this.mouseClickEvent.None;
-          document.querySelector(".second")?.classList.remove("fade-in-slide");
-          document.querySelector(".second")?.classList.add("fade-out");
         } else if (this.currentMouseClickEvent == this.mouseClickEvent.None) {
-          document.querySelector(".second")?.classList.remove("fade-out");
-          document.querySelector(".second")?.classList.add("hidden");
         }
       }
     });
   }
   // loading pop model and animations
   async loadAssync() {
-    const scalar = 0.5;
+    const scalar = 0.35;
     const loader = new GLTFLoader();
-    const [idle, jump, landing] = await Promise.all([
-      loader.loadAsync("models/pop_skin_idle.glb"),
-      loader.loadAsync("models/pop_jumping.glb"),
-      loader.loadAsync("scene_1/models/FallinPopAnimation_3.glb"),
-    ]);
-
+    const [idle] = await Promise.all([loader.loadAsync("scene_3/models/cat/cat_anim.glb")]);
     this.idleScene = idle.scene;
-
     // mesh texture
-    const popTexture = new THREE.TextureLoader().load("scene_1/img/VintagePupTex_5.png");
-    popTexture.premultiplyAlpha = false;
-    popTexture.flipY = false;
-    popTexture.minFilter = THREE.NearestFilter;
-    popTexture.magFilter = THREE.NearestFilter;
+    this.catTexture = new THREE.TextureLoader().load("scene_3/img/cat/Face_BaseColor_smiling.png");
+    this.catTexture.premultiplyAlpha = false;
+    this.catTexture.flipY = false;
+    this.catTexture.minFilter = THREE.NearestFilter;
+    this.catTexture.magFilter = THREE.NearestFilter;
 
     // mesh material
-    this.popMesh = this.idleScene.getObjectByName("Pop") as THREE.Mesh;
-    this.popMesh.material = this.meshToonMaterial;
-    this.meshToonMaterial.map = popTexture;
-    //popMesh.material = this.meshToonMaterial;
+    this.catMesh = this.idleScene.getObjectByName("Head") as THREE.Mesh;
+    this.catMeshToonMaterial.map = this.catTexture;
+    this.catMesh.material = this.catMeshToonMaterial;
 
     // mesh animation
     this.mixer = new THREE.AnimationMixer(idle.scene);
-    this.animationActions["idle"] = this.mixer.clipAction(idle.animations[1]);
-    this.animationActions["jump"] = this.mixer.clipAction(jump.animations[0]);
-    this.animationActions["landing"] = this.mixer.clipAction(landing.animations[0]);
-    this.activeAction = this.animationActions["landing"];
+    this.animationActions["idle"] = this.mixer.clipAction(idle.animations[0]);
+    this.activeAction = this.animationActions["idle"];
 
     this.idleScene.scale.multiplyScalar(scalar);
-    this.idleScene.position.set(0, 0.2, 0);
+    this.idleScene.position.set(-1.5, 0.2, 0);
+    this.startCatAnimation();
   }
 
-  startPopAnimation() {
-    this.scene.add(this.idleScene);
-    this.activeAction.play();
-    this.activeAction.setLoop(THREE.LoopOnce, 1);
-    this.activeAction.clampWhenFinished = true;
-    this.mixer.addEventListener("finished", this.idleLoop);
-  }
+  createBubbleSpeech() {
+    // mesh texture
+    this.bubbleTexture = new THREE.TextureLoader().load("scene_3/img/bubbleSpeech/BubbleSpeech_1.png");
+    this.bubbleTexture.premultiplyAlpha = false;
+    this.bubbleTexture.flipY = false;
+    this.bubbleTexture.minFilter = THREE.NearestFilter;
+    this.bubbleTexture.magFilter = THREE.NearestFilter;
 
-  switchPopAnimation() {
-    this.mixer.removeEventListener("finished", this.idleLoop);
-    this.activeAction.fadeOut(0.5);
-    this.animationActions["jump"].reset().fadeIn(0.25).play();
-    this.activeAction = this.animationActions["jump"];
-    this.activeAction.setLoop(THREE.LoopOnce, 1);
-    this.activeAction.clampWhenFinished = true;
-    this.mixer.addEventListener("finished", () => {
-      this.popMesh.visible = false;
-      this.startNewScene();
+    //loads model
+    new GLTFLoader().load("scene_3/models/bubbleSpeech/BubbleSpeech.glb", (gltf) => {
+      const bubbleMeshParent = gltf.scene.getObjectByName("BubbleSpeech") as THREE.Mesh;
+      this.bubbleMesh = bubbleMeshParent.children[1] as THREE.Mesh;
+      // mesh material
+      this.bubbleMeshToonMaterial.map = this.bubbleTexture;
+      this.bubbleMesh.material = this.bubbleMeshToonMaterial;
+      gltf.scene.scale.multiplyScalar(0.35);
+      gltf.scene.position.set(1, 1.6, 0.5);
+      this.scene.add(gltf.scene);
     });
   }
 
-  onFinishedAnimation() {
-    this.activeAction.fadeOut(1);
-    this.animationActions["idle"].reset().fadeIn(0.25).play();
-    this.activeAction = this.animationActions["idle"];
-    console.log("idle again");
+  startCatAnimation() {
+    this.scene.add(this.idleScene);
+    this.activeAction.play();
   }
+
+  switchCatTexture() {}
 
   startNewScene() {
     console.log("Start new scene");

@@ -1,6 +1,7 @@
 import * as THREE from "three";
 
 export default class Button extends THREE.Mesh {
+  name: string;
   scene: THREE.Scene;
   hovered = false;
   clicked = false;
@@ -17,6 +18,7 @@ export default class Button extends THREE.Mesh {
   outlineMaterial = new THREE.ShaderMaterial();
   outlineObject = new THREE.Mesh();
   secondOutlineObject = new THREE.Mesh();
+  outlineThickness = 0.015;
   // second mesh
   hasTwoMeshes = false;
   secondMesh = new THREE.Mesh();
@@ -32,15 +34,22 @@ export default class Button extends THREE.Mesh {
   thirdCallbackFunction = () => {};
 
   constructor(
+    name = "",
     scene: THREE.Scene,
     geometry: THREE.BufferGeometry,
     material: THREE.MeshToonMaterial,
     colorTo: THREE.Color,
     hasTwoMeshes: boolean,
+    hasOnlyOutline: boolean,
+    outlineThickness: number,
     isFloating = false,
     texture = THREE.Texture.DEFAULT_IMAGE
   ) {
     super();
+    if (!hasTwoMeshes) {
+      geometry.center();
+    }
+    this.name = name;
     this.scene = scene;
     this.material = material;
     this.geometry = geometry;
@@ -63,8 +72,12 @@ export default class Button extends THREE.Mesh {
     this.setScale(1, 1, 1);
     this.scene.add(this);
     this.hasTwoMeshes = hasTwoMeshes;
+    this.outlineThickness = outlineThickness;
     if (hasTwoMeshes) {
       //outline object
+      this.outlineObject = this.solidify(this);
+      this.add(this.outlineObject);
+    } else if (hasOnlyOutline) {
       this.outlineObject = this.solidify(this);
       this.add(this.outlineObject);
     } else {
@@ -125,7 +138,7 @@ export default class Button extends THREE.Mesh {
 
   //outline as a mesh
   solidify = (mesh: THREE.Mesh) => {
-    const THICKNESS = 0.01;
+    const THICKNESS = this.outlineThickness;
     const geometry = mesh.geometry;
     this.outlineMaterial = new THREE.ShaderMaterial({
       vertexShader: /* glsl */ `

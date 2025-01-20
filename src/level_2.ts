@@ -48,12 +48,19 @@ export default class Level_2 {
   // events
   buttons: Button[] = [];
   mouseClickEvent = {
-    FirstClickEvent: "FirstClickEvent",
-    SecondClickEvent: "SecondClickEvent",
-    None: "None",
+    FirstClickEvent: false,
+    SecondClickEvent: false,
+    ThirdClickEvent: false,
+    EndClickEvent: false,
   };
   currentMouseClickEvent = this.mouseClickEvent.FirstClickEvent;
-
+  //
+  buttonNames = {
+    UniversalControllerRight: "UniversalControllerRight",
+    UniversalControllerLeft: "UniversalControllerLeft",
+    TextMesh: "TextMesh",
+    Continue: "Continue",
+  };
   constructor(camera: THREE.PerspectiveCamera, renderer: THREE.WebGLRenderer, raycaster: THREE.Raycaster, mouse: THREE.Vector2) {
     this.camera = camera;
     this.renderer = renderer;
@@ -80,11 +87,11 @@ export default class Level_2 {
     //this.createGridCameraUI();
     this.createBackground();
     this.createLight();
-    this.createTextMesh();
+    this.createTextMesh("Meta Quest\n          3", 1, this.buttonNames.TextMesh, new THREE.Vector3(0, 1, 0), 0.25);
     this.createOutlines();
     this.createImage();
-    this.createControllers();
-    // this.setupButtonInteractions();
+    this.createControllers(this.buttonNames.UniversalControllerRight, new THREE.Vector3(2, 0, 0));
+    this.createControllers(this.buttonNames.UniversalControllerLeft, new THREE.Vector3(-2, 0, 0));
   }
 
   createGridCameraUI() {
@@ -163,9 +170,9 @@ export default class Level_2 {
   createOutlines() {
     this.composer.addPass(this.renderPass);
     // -- parameter config
-    this.outlinePass.edgeStrength = 15.0;
+    this.outlinePass.edgeStrength = 6.0;
     this.outlinePass.edgeGlow = 0;
-    this.outlinePass.edgeThickness = 1.0;
+    this.outlinePass.edgeThickness = 4.0;
     this.outlinePass.pulsePeriod = 0;
     this.outlinePass.usePatternTexture = false; // patter texture for an object mesh
     this.outlinePass.visibleEdgeColor.set("#ffffff"); // set basic edge color
@@ -201,7 +208,7 @@ export default class Level_2 {
     this.scene.add(outline);
   };
 
-  createControllers() {
+  createControllers(name: string, position: THREE.Vector3) {
     this.controller_1_1_texture = new THREE.TextureLoader().load("scene_2/UniversalController_1.png");
     this.controller_1_1_texture.premultiplyAlpha = false;
     this.controller_1_1_texture.magFilter = THREE.NearestFilter;
@@ -220,34 +227,34 @@ export default class Level_2 {
       this.universalController_1_2 = this.universalController_parent.children[0] as THREE.Mesh;
 
       const button = new Button(
+        name,
         this.scene,
         this.universalController_1_2.geometry,
         new THREE.MeshToonMaterial({ color: 0xffffff }),
         new THREE.Color(0xeeeeee),
         true,
+        false,
+        0.015,
         true,
         this.controller_1_2_texture
       );
 
       button.setSecondMesh(this.universalController_1_1, this.controller_1_1_texture);
-      button.setPosition(1, 0, 0);
+      button.setPosition(position.x, position.y, position.z);
       this.buttons.push(button);
     });
   }
 
-  createTextMesh() {
-    let textScale = 0.1;
-    let textOffset = 3;
+  createTextMesh(text: string, size: number, buttonName: string, position: THREE.Vector3, scale: number) {
     let textGeo: TextGeometry;
     let textMesh = this.textMesh;
     let activeScene = this.scene;
-    let outlinePass = this.outlinePass;
     let buttons = this.buttons;
     const loader = new FontLoader();
     loader.load("fonts/Play_Regular.json", function (font) {
-      textGeo = new TextGeometry("Meta Quest\n          3", {
+      textGeo = new TextGeometry(text, {
         font: font,
-        size: 1,
+        size: size,
         height: 0.25,
         curveSegments: 8,
         bevelEnabled: true,
@@ -258,30 +265,20 @@ export default class Level_2 {
       });
       textGeo.computeBoundingBox();
       textMesh = new THREE.Mesh(textGeo, new THREE.MeshToonMaterial({ color: 0x3f54ff }));
-      if (textGeo.boundingBox != null) {
-        const centerOffset = -0.5 * (textGeo.boundingBox.max.x - textGeo.boundingBox.min.x) * textScale;
-        textMesh.position.x = centerOffset * textOffset;
-        textMesh.position.y = 2;
-        textMesh.position.z = 0;
-
-        textMesh.rotation.x = 0;
-        textMesh.rotation.y = Math.PI * 0.1;
-        textMesh.scale.set(textScale, textScale, textScale);
-      }
-      //activeScene.add(textMesh);
-      //outlinePass.selectedObjects.push(textMesh);
       const button = new Button(
+        buttonName,
         activeScene,
         textMesh.geometry,
         new THREE.MeshToonMaterial({ color: 0xffffff }),
         new THREE.Color(0xeeeeee),
         false,
+        false,
+        0.015,
         true
       );
-
       buttons.push(button);
-      button.setScale(0.25, 0.25, 0.25);
-      button.setPosition(-1, 1, 0);
+      button.setScale(scale, scale, scale);
+      button.setPosition(position.x, position.y, position.z);
     });
   }
 
@@ -301,18 +298,15 @@ export default class Level_2 {
           // only splice array when item is found
           this.outlinePass.selectedObjects.splice(index, 1); // 2nd parameter means remove one item only
         }
-        document.querySelector(".intro")?.classList.remove("highlighted");
-        document.querySelector(".fade-out")?.classList.remove("fade-out");
+        // actions when the buttons are not hovered
         document.body.style.cursor = "default";
       });
+
+      // actions when the buttons are hovered
       if (intersects.length) {
         (intersects[0].object as Button).hovered = true;
         this.outlinePass.selectedObjects.push(intersects[0].object);
-        document.querySelector(".intro")?.classList.add("highlighted");
         document.body.style.cursor = "pointer";
-
-        document.querySelector(".fade-in-slide")?.classList.remove("fade-in-slide");
-        document.querySelector(".intro")?.classList.add("fade-out");
       }
     });
 
@@ -326,17 +320,71 @@ export default class Level_2 {
 
       // toggles `clicked` property for only the Pickable closest to the camera
       if (intersects.length) {
-        console.log("was clicked" + (intersects[0].object as Button).clicked);
         (intersects[0].object as Button).clicked = !(intersects[0].object as Button).clicked;
-        document.querySelector(".intro")?.classList.add("hidden");
-        if (this.currentMouseClickEvent == this.mouseClickEvent.FirstClickEvent) {
-          this.currentMouseClickEvent = this.mouseClickEvent.SecondClickEvent;
-        } else if (this.currentMouseClickEvent == this.mouseClickEvent.SecondClickEvent) {
-          this.currentMouseClickEvent = this.mouseClickEvent.None;
-        }
+        this.setupButtonOnClick((intersects[0].object as Button).clicked, (intersects[0].object as Button).name);
       }
     });
   }
+
+  setupTextOnClick(buttonClicked: boolean, buttonClass: string) {
+    if (!buttonClicked) {
+      document.querySelector(buttonClass)?.classList.remove("fade-in-slide");
+      document.querySelector(buttonClass)?.classList.add("fade-out");
+    } else {
+      document.querySelector(buttonClass)?.classList.remove("hidden");
+      document.querySelector(buttonClass)?.classList.remove("fade-out");
+      document.querySelector(buttonClass)?.classList.add("fade-in-slide");
+    }
+  }
+
+  setupButtonOnClick(buttonClicked: boolean, name: string) {
+    if (name == this.buttonNames.UniversalControllerRight) {
+      this.setupTextOnClick(buttonClicked, ".right");
+      this.mouseClickEvent.FirstClickEvent = true;
+    } else if (name == this.buttonNames.UniversalControllerLeft) {
+      this.setupTextOnClick(buttonClicked, ".left");
+      this.mouseClickEvent.SecondClickEvent = true;
+    } else if (name == this.buttonNames.TextMesh) {
+      this.setupTextOnClick(buttonClicked, ".center");
+      this.mouseClickEvent.ThirdClickEvent = true;
+    }
+    this.checkIfAllButtonsAreClicked();
+    if (name == this.buttonNames.Continue) {
+      this.startNewScene();
+    }
+  }
+
+  checkIfAllButtonsAreClicked() {
+    if (
+      this.mouseClickEvent.FirstClickEvent &&
+      this.mouseClickEvent.SecondClickEvent &&
+      this.mouseClickEvent.ThirdClickEvent &&
+      !this.mouseClickEvent.EndClickEvent
+    ) {
+      this.mouseClickEvent.EndClickEvent = true;
+      this.createTextMesh("continue", 2, this.buttonNames.Continue, new THREE.Vector3(0, -0.5, 0), 0.1);
+    }
+  }
+
+  startNewScene() {
+    console.log("Start new scene");
+    document.querySelector(".end")?.classList.add("overlay-fade-in");
+    document.querySelector(".start")?.classList.remove("overlay-fade-out");
+    setTimeout(this.startEvent, 1500);
+  }
+  startEvent = () => {
+    this.deactivateAllTexts();
+    //document.dispatchEvent(this.event);
+    document.querySelector(".end")?.classList.remove("overlay-fade-in");
+    document.querySelector(".start")?.classList.add("overlay-fade-out");
+  };
+  deactivateAllTexts() {
+    const texts = document.querySelectorAll(".level_2");
+    texts.forEach((text) => {
+      text?.classList.add("hidden");
+    });
+  }
+
   // update loop
   updateLoop(delta: number, clock: THREE.Clock) {
     this.buttons.forEach((p) => {

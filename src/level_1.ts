@@ -84,6 +84,7 @@ export default class Level_1 {
 
   init() {
     //this.createGridCameraUI();
+    document.querySelector(".first")?.classList.remove("hidden");
     this.createBackground();
     this.createButton();
     this.createLight();
@@ -194,7 +195,9 @@ export default class Level_1 {
       this.buttons.push(button);
       this.scene.add(button);
     });
+  }
 
+  setupButtonInteractions() {
     this.renderer.domElement.addEventListener("mousemove", (e) => {
       const intersects = this.raycaster.intersectObjects(this.buttons, false);
       this.mouse.set(
@@ -236,23 +239,27 @@ export default class Level_1 {
         (intersects[0].object as Button).clicked = !(intersects[0].object as Button).clicked;
 
         //checks the click's number
-        if (this.currentMouseClickEvent == this.mouseClickEvent.FirstClickEvent) {
-          this.startPopAnimation();
-          this.currentMouseClickEvent = this.mouseClickEvent.SecondClickEvent;
-          document.querySelector(".first")?.classList.add("hidden");
-          document.querySelector(".second")?.classList.remove("hidden");
-          document.querySelector(".second")?.classList.add("fade-in-slide");
-        } else if (this.currentMouseClickEvent == this.mouseClickEvent.SecondClickEvent) {
-          this.switchPopAnimation();
-          this.currentMouseClickEvent = this.mouseClickEvent.None;
-          document.querySelector(".second")?.classList.remove("fade-in-slide");
-          document.querySelector(".second")?.classList.add("fade-out");
-        } else if (this.currentMouseClickEvent == this.mouseClickEvent.None) {
-          document.querySelector(".second")?.classList.remove("fade-out");
-          document.querySelector(".second")?.classList.add("hidden");
-        }
+        this.checkButtonInteractions();
       }
     });
+  }
+
+  checkButtonInteractions() {
+    if (this.currentMouseClickEvent == this.mouseClickEvent.FirstClickEvent) {
+      this.startPopAnimation();
+      this.currentMouseClickEvent = this.mouseClickEvent.SecondClickEvent;
+      document.querySelector(".first")?.classList.add("hidden");
+      document.querySelector(".second")?.classList.remove("hidden");
+      document.querySelector(".second")?.classList.add("fade-in-slide");
+    } else if (this.currentMouseClickEvent == this.mouseClickEvent.SecondClickEvent) {
+      this.switchPopAnimation();
+      this.currentMouseClickEvent = this.mouseClickEvent.None;
+      document.querySelector(".second")?.classList.remove("fade-in-slide");
+      document.querySelector(".second")?.classList.add("fade-out");
+    } else if (this.currentMouseClickEvent == this.mouseClickEvent.None) {
+      document.querySelector(".second")?.classList.remove("fade-out");
+      document.querySelector(".second")?.classList.add("hidden");
+    }
   }
   // loading pop model and animations
   async loadAssync() {

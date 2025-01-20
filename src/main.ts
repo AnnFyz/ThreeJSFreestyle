@@ -28,23 +28,29 @@ const level_2 = new Level_2(camera, renderer, raycaster, mouse);
 const level_3 = new Level_3(camera, renderer, raycaster, mouse);
 await level_1.loadAssync();
 await level_3.loadAssync();
-let currentScene = scenes.ThirdScene;
-let activeScene = level_3.scene;
+
+// Scene setup
+const levels =[level_1,level_2,level_3]
+let currentLevelIndex = 0;
+levels[currentLevelIndex].setupButtonInteractions();
+//let currentScene = scenes.ThirdScene;
+//let activeScene = level_3.scene;
 
 document.onkeydown = function (e) {
   e = e || window.event;
   if (e.shiftKey) {
-    currentScene = scenes.SecondScene;
-    level_1.deactivateAllTexts();
-    activeScene = level_2.scene;
-    level_2.setupButtonInteractions();
+    levels[currentLevelIndex].deactivateAllTexts();
+    currentLevelIndex = currentLevelIndex < levels.length-1? ++currentLevelIndex : 0;
+    levels[currentLevelIndex].setupButtonInteractions();
     updateCamerandRenderer();
   }
 };
 
 document.addEventListener("StartNewScene", () => {
-  currentScene = scenes.SecondScene;
-  level_2.setupButtonInteractions();
+  levels[currentLevelIndex].deactivateAllTexts();
+  currentLevelIndex = currentLevelIndex < levels.length-1? ++currentLevelIndex : 0;
+  levels[currentLevelIndex].setupButtonInteractions();
+  updateCamerandRenderer();
 });
 
 window.addEventListener("resize", () => {
@@ -56,16 +62,8 @@ function updateCamerandRenderer() {
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
 
-  if (currentScene == scenes.FirstScene) {
-    level_1.composer.setSize(window.innerWidth, window.innerHeight);
-    level_1.effectFXAA.uniforms["resolution"].value.set(1 / window.innerWidth, 1 / window.innerHeight);
-  } else if (currentScene == scenes.SecondScene) {
-    level_2.composer.setSize(window.innerWidth, window.innerHeight);
-    level_2.effectFXAA.uniforms["resolution"].value.set(1 / window.innerWidth, 1 / window.innerHeight);
-  } else if (currentScene == scenes.ThirdScene) {
-    level_3.composer.setSize(window.innerWidth, window.innerHeight);
-    level_3.effectFXAA.uniforms["resolution"].value.set(1 / window.innerWidth, 1 / window.innerHeight);
-  }
+    levels[currentLevelIndex].composer.setSize(window.innerWidth, window.innerHeight);
+    levels[currentLevelIndex].effectFXAA.uniforms["resolution"].value.set(1 / window.innerWidth, 1 / window.innerHeight);
 }
 
 const controls = new OrbitControls(camera, renderer.domElement);
@@ -88,18 +86,11 @@ function animate() {
 
   delta = clock.getDelta();
 
-  renderer.render(activeScene, camera);
+  renderer.render(levels[currentLevelIndex].scene, camera);
 
-  if (currentScene == scenes.FirstScene) {
-    level_1.composer.render();
-    level_1.updateLoop(delta, clock);
-  } else if (currentScene == scenes.SecondScene) {
-    level_2.composer.render();
-    level_2.updateLoop(delta, clock);
-  } else if (currentScene == scenes.ThirdScene) {
-    level_3.composer.render();
-    level_3.updateLoop(delta, clock);
-  }
+  levels[currentLevelIndex].composer.render();
+  levels[currentLevelIndex].updateLoop(delta, clock);
+ 
   controls.update();
   stats.update();
 }

@@ -61,6 +61,7 @@ export default class Level_2 {
     TextMesh: "TextMesh",
     Continue: "Continue",
   };
+  event = new Event("StartNewScene");
   constructor(camera: THREE.PerspectiveCamera, renderer: THREE.WebGLRenderer, raycaster: THREE.Raycaster, mouse: THREE.Vector2) {
     this.camera = camera;
     this.renderer = renderer;
@@ -374,7 +375,7 @@ export default class Level_2 {
   }
   startEvent = () => {
     this.deactivateAllTexts();
-    //document.dispatchEvent(this.event);
+    document.dispatchEvent(this.event);
     document.querySelector(".end")?.classList.remove("overlay-fade-in");
     document.querySelector(".start")?.classList.add("overlay-fade-out");
   };

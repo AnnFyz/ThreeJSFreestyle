@@ -29,6 +29,7 @@ export default class Level_3 {
   mouseClickEvent = {
     FirstClickEvent: "FirstClickEvent",
     SecondClickEvent: "SecondClickEvent",
+    ThirdClickEvent: "ThirdClickEvent",
     None: "None",
   };
   currentMouseClickEvent = this.mouseClickEvent.FirstClickEvent;
@@ -52,6 +53,7 @@ export default class Level_3 {
   bubbleMesh = new THREE.Mesh();
   bubbleTexture: any;
 
+  starButton: any;
   //events
   event = new Event("StartNewScene");
 
@@ -96,7 +98,6 @@ export default class Level_3 {
     this.createLight();
     this.createOutlines();
     this.createBubbleSpeech();
-    //this.createStar();
   }
 
   //outline as a postprocessing
@@ -178,33 +179,35 @@ export default class Level_3 {
   //here are set all button interactions
   createStarButton() {
     // texture for button as a platform
-    const platformTexture = new THREE.TextureLoader().load("scene_3/img/star/Star_base.png");
-    platformTexture.premultiplyAlpha = false;
-    platformTexture.magFilter = THREE.NearestFilter;
-    platformTexture.minFilter = THREE.NearestFilter;
-    platformTexture.flipY = false;
+    const starTexture = new THREE.TextureLoader().load("scene_3/img/star/Star_base.png");
+    starTexture.premultiplyAlpha = false;
+    starTexture.magFilter = THREE.NearestFilter;
+    starTexture.minFilter = THREE.NearestFilter;
+    starTexture.flipY = false;
 
     // create button as a platform
     new GLTFLoader().load("scene_3/models/Star.glb", (gltf) => {
-      const buttonMesh = gltf.scene.getObjectByName("Star") as THREE.Mesh;
-      const button = new Button(
+      const starMesh = gltf.scene.getObjectByName("Star") as THREE.Mesh;
+      this.starButton = new Button(
         "Star",
         this.scene,
-        buttonMesh.geometry,
+        starMesh.geometry,
         new THREE.MeshToonMaterial({ color: 0xffff00 }),
         new THREE.Color(0xeeeeee),
         false,
         true,
         0.045,
         false,
-        platformTexture
+        starTexture
       );
-      button.setScale(0.35, 0.35, 0.35);
-      button.setPosition(2, 0, 1);
-      this.buttons.push(button);
-      this.scene.add(button);
+      this.starButton.setScale(0.35, 0.35, 0.35);
+      this.starButton.setPosition(2, 0, 1);
+      this.buttons.push(this.starButton);
+      this.scene.add(this.starButton);
     });
+  }
 
+  setupButtonInteractions() {
     this.renderer.domElement.addEventListener("mousemove", (e) => {
       const intersects = this.raycaster.intersectObjects(this.buttons, false);
       this.mouse.set(
@@ -241,15 +244,35 @@ export default class Level_3 {
       // toggles `clicked` property for only the Pickable closest to the camera
       if (intersects.length) {
         (intersects[0].object as Button).clicked = !(intersects[0].object as Button).clicked;
-        this.switchCatTexture();
         //checks the click's number
-        if (this.currentMouseClickEvent == this.mouseClickEvent.FirstClickEvent) {
-          this.currentMouseClickEvent = this.mouseClickEvent.SecondClickEvent;
-        } else if (this.currentMouseClickEvent == this.mouseClickEvent.SecondClickEvent) {
-        } else if (this.currentMouseClickEvent == this.mouseClickEvent.None) {
-        }
+        this.checkButtonInteractions();
       }
     });
+  }
+
+  checkButtonInteractions() {
+    if (this.currentMouseClickEvent == this.mouseClickEvent.FirstClickEvent) {
+      this.currentMouseClickEvent = this.mouseClickEvent.SecondClickEvent;
+      this.applyTextureOnMaterial(
+        this.bubbleMesh,
+        this.bubbleMeshToonMaterial,
+        this.bubbleTexture,
+        "scene_3/img/bubbleSpeech/BubbleSpeech_2.png"
+      );
+      this.applyTextureOnMaterial(this.catMesh, this.catMeshToonMaterial, this.catTexture, "scene_3/img/cat/Face_BaseColor_neutral.png");
+    } else if (this.currentMouseClickEvent == this.mouseClickEvent.SecondClickEvent) {
+      this.currentMouseClickEvent = this.mouseClickEvent.ThirdClickEvent;
+      this.applyTextureOnMaterial(
+        this.bubbleMesh,
+        this.bubbleMeshToonMaterial,
+        this.bubbleTexture,
+        "scene_3/img/bubbleSpeech/BubbleSpeech_3.png"
+      );
+      this.applyTextureOnMaterial(this.catMesh, this.catMeshToonMaterial, this.catTexture, "scene_3/img/cat/Face_BaseColor_smiling.png");
+    } else if (this.currentMouseClickEvent == this.mouseClickEvent.ThirdClickEvent) {
+      this.currentMouseClickEvent = this.mouseClickEvent.None;
+      this.startNewScene();
+    }
   }
   // loading pop model and animations
   async loadAssync() {
@@ -300,12 +323,20 @@ export default class Level_3 {
     });
   }
 
+  applyTextureOnMaterial(mesh: THREE.Mesh, material: any, texture: THREE.Texture, path: string) {
+    texture = new THREE.TextureLoader().load(path);
+    texture.premultiplyAlpha = false;
+    texture.flipY = false;
+    texture.minFilter = THREE.NearestFilter;
+    texture.magFilter = THREE.NearestFilter;
+
+    material.map = texture;
+    mesh.material = material;
+  }
   startCatAnimation() {
     this.scene.add(this.idleScene);
     this.activeAction.play();
   }
-
-  switchCatTexture() {}
 
   startNewScene() {
     console.log("Start new scene");
@@ -327,14 +358,9 @@ export default class Level_3 {
     });
 
     this.mixer.update(delta);
+    this.starButton.rotation.y += 0.25 * delta;
+    this.starButton.rotation.z += 0.25 * delta;
   }
 
-  removeAllObjects() {}
-
-  deactivateAllTexts() {
-    const texts = document.querySelectorAll(".level_1");
-    texts.forEach((text) => {
-      text?.classList.add("hidden");
-    });
-  }
+  deactivateAllTexts() {}
 }

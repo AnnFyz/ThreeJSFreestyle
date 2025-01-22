@@ -84,7 +84,7 @@ export default class Level_1 {
 
   init() {
     //this.createGridCameraUI();
-    document.querySelector(".first")?.classList.remove("hidden");
+    //document.querySelector(".first")?.classList.remove("hidden");
     this.createBackground();
     this.createButton();
     this.createLight();

@@ -5,6 +5,7 @@ import Stats from "three/addons/libs/stats.module.js";
 import Level_1 from "./level_1";
 import Level_2 from "./level_2";
 import Level_3 from "./level_3";
+import Level_4 from "./level_4";
 
 //Project setup
 const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 100);
@@ -26,12 +27,14 @@ const scenes = {
 const level_1 = new Level_1(camera, renderer, raycaster, mouse);
 const level_2 = new Level_2(camera, renderer, raycaster, mouse);
 const level_3 = new Level_3(camera, renderer, raycaster, mouse);
+const level_4 = new Level_4(camera, renderer, raycaster, mouse);
 await level_1.loadAssync();
 await level_3.loadAssync();
+await level_4.loadAssync();
 
 // Scene setup
-const levels =[level_1,level_2,level_3]
-let currentLevelIndex = 0;
+const levels = [level_1, level_2, level_3, level_4];
+let currentLevelIndex = 3;
 levels[currentLevelIndex].setupButtonInteractions();
 //let currentScene = scenes.ThirdScene;
 //let activeScene = level_3.scene;

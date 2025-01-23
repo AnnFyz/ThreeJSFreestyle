@@ -270,7 +270,12 @@ export default class Level_3 {
         //checks the click's number
         this.enemies.forEach((enemy) => {
           if ((intersects[0].object as THREE.Mesh) === enemy.enemyMesh) {
-            enemy.handleDeath();
+            // makes enemy element uninteractable
+            const index = this.enemies.indexOf(enemy);
+            this.enemies.splice(index, 1);
+            const index_2 = this.interactables.indexOf(enemy.enemyMesh);
+            this.interactables.splice(index_2, 1);
+
             this.createStar(enemy.enemyIdleScene.position);
             this.destroyMesh(intersects[0].object as THREE.Mesh);
             if (this.enemiesAmount > 1) {

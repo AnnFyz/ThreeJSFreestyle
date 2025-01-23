@@ -363,5 +363,7 @@ export default class Level_3 {
     this.starButton.rotation.z += 0.25 * delta;
   }
 
-  deactivateAllTexts() {}
+  deactivateAllTexts() {
+    this.buttons = [];
+  }
 }

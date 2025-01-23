@@ -384,6 +384,7 @@ export default class Level_2 {
     texts.forEach((text) => {
       text?.classList.add("hidden");
     });
+    this.buttons = [];
   }
 
   // update loop

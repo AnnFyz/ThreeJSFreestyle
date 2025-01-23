@@ -1,5 +1,5 @@
-declare module "*.css" {
-  const content: Record<string, string>;
-  export default content;
-}
-declare module "troika-three-text";
+// declare module "*.css" {
+//   const content: Record<string, string>;
+//   export default content;
+// }
+// declare module "troika-three-text";

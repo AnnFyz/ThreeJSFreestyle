@@ -1,5 +1,4 @@
 import * as THREE from "three";
-import "./style.css";
 //import { RGBELoader } from "three/addons/loaders/RGBELoader.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { GUI } from "dat.gui";
@@ -393,4 +392,3 @@ export default class Level_2 {
     });
   }
 }
-  

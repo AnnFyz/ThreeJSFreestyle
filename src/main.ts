@@ -85,6 +85,7 @@ const clock = new THREE.Clock();
 let delta = 0;
 
 function animate() {
+  // if (!document.hidden) {
   requestAnimationFrame(animate);
 
   delta = clock.getDelta();
@@ -93,9 +94,10 @@ function animate() {
 
   levels[currentLevelIndex].composer.render();
   levels[currentLevelIndex].updateLoop(delta, clock);
- 
+
   controls.update();
   stats.update();
+  // }
 }
 
 

@@ -11,7 +11,6 @@ import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
 import { FXAAShader } from "three/examples/jsm/shaders/FXAAShader.js";
 import { texture } from "three/webgpu";
-import Enemy from "./enemy";
 
 export default class Level_3 {
   scene = new THREE.Scene();
@@ -22,21 +21,10 @@ export default class Level_3 {
   mouse: THREE.Vector2;
   ambientLight: THREE.AmbientLight;
   pointLight: THREE.PointLight;
-  // enemy 1
-  mixer_1 = new THREE.AnimationMixer(this.scene);
-  animationActions_1: { [key: string]: THREE.AnimationAction } = {};
-  activeAction_1: THREE.AnimationAction = this.animationActions_1[""];
-
-  // enemy 2
-  mixer_2 = new THREE.AnimationMixer(this.scene);
-  animationActions_2: { [key: string]: THREE.AnimationAction } = {};
-  activeAction_2: THREE.AnimationAction = this.animationActions_1[""];
-
-  // enemy 3
-  mixer_3 = new THREE.AnimationMixer(this.scene);
-  animationActions_3: { [key: string]: THREE.AnimationAction } = {};
-  activeAction_3: THREE.AnimationAction = this.animationActions_1[""];
-
+  //animations
+  mixer = new THREE.AnimationMixer(this.scene);
+  animationActions: { [key: string]: THREE.AnimationAction } = {};
+  activeAction: THREE.AnimationAction = this.animationActions[""];
   enemyIdleScene: THREE.Group<THREE.Object3DEventMap>;
   enemyStartRotation: any;
   mouseClickEvent = {
@@ -75,9 +63,6 @@ export default class Level_3 {
   waypoints: any[] = [new THREE.Vector3(0, -1, 0), new THREE.Vector3(0, 0, -2)];
   currentWaypointIndex = 0;
   originalEnemyPos = new THREE.Vector3(-1.5, 0.2, 0);
-
-  //enemies
-  enemies: Enemy[] = [];
   constructor(camera: THREE.PerspectiveCamera, renderer: THREE.WebGLRenderer, raycaster: THREE.Raycaster, mouse: THREE.Vector2) {
     this.camera = camera;
     this.renderer = renderer;
@@ -108,15 +93,20 @@ export default class Level_3 {
     this.effectFXAA.uniforms["resolution"].value.set(1 / window.innerWidth, 1 / window.innerHeight);
     this.composer = new EffectComposer(renderer);
 
+    //
     this.init();
   }
 
   init() {
-    //this.createGridCameraUI();
+    this.createGridCameraUI();
     this.createBackground();
     this.createLight();
     this.createOutlines();
-    this.createPlatform();
+    //this.createPlatform();
+    this.waypoints.splice(0, 0, this.originalEnemyPos);
+    this.waypoints.forEach((wayPoint) => {
+      this.createWayPoint(wayPoint);
+    });
   }
 
   //outline as a postprocessing
@@ -204,7 +194,7 @@ export default class Level_3 {
     starTexture.minFilter = THREE.NearestFilter;
     starTexture.flipY = false;
 
-    // create a platform
+    // create button as a platform
     new GLTFLoader().load("scene_3/models/Star.glb", (gltf) => {
       const starMesh = gltf.scene.getObjectByName("Star") as THREE.Mesh;
       const material = new THREE.MeshToonMaterial({ color: 0xffff00 });
@@ -251,20 +241,18 @@ export default class Level_3 {
       // toggles `clicked` property for only the Pickable closest to the camera
       if (intersects.length) {
         //checks the click's number
-        this.enemies.forEach((enemy) => {
-          if ((intersects[0].object as THREE.Mesh) == enemy.enemyMesh) {
-            enemy.handleDeath();
-            this.createStar(enemy.enemyIdleScene.position);
-          }
-        });
-
         let object3D = intersects[0].object as THREE.Mesh;
+        this.createStar(this.enemyIdleScene.position);
+        this.enemyIdleScene.rotation.set(this.enemyStartRotation.x, this.enemyStartRotation.y, this.enemyStartRotation.z);
         // for better memory management and performance
         if (object3D.geometry) object3D.geometry.dispose();
+
         if (object3D.material) {
           if (object3D.material instanceof Array) {
+            // for better memory management and performance
             object3D.material.forEach((material) => material.dispose());
           } else {
+            // for better memory management and performance
             object3D.material.dispose();
           }
           console.log("dispose");
@@ -311,68 +299,54 @@ export default class Level_3 {
   }
   // loading enemy model and animations
   async loadAssync() {
+    const scalar = 0.2;
     const loader = new GLTFLoader();
-    const [idle_1, idle_2, idle_3] = await Promise.all([
-      loader.loadAsync("scene_4/enemy.glb"),
-      loader.loadAsync("scene_4/enemy.glb"),
-      loader.loadAsync("scene_4/enemy.glb"),
-    ]);
+    const [idle] = await Promise.all([loader.loadAsync("scene_4/enemy.glb")]);
+    this.enemyIdleScene = idle.scene;
+    // mesh texture
+    this.enemyTexture = new THREE.TextureLoader().load("scene_4/enemy_base.png");
+    this.enemyTexture.premultiplyAlpha = false;
+    this.enemyTexture.flipY = false;
+    this.enemyTexture.minFilter = THREE.NearestFilter;
+    this.enemyTexture.magFilter = THREE.NearestFilter;
 
-    // enemy 1
-    this.mixer_1 = new THREE.AnimationMixer(idle_1.scene);
-    this.animationActions_1["idle_1"] = this.mixer_1.clipAction(idle_1.animations[0]);
-    this.activeAction_1 = this.animationActions_1["idle_1"];
-    const wayPoints_1 = [new THREE.Vector3(-0.75, 0.3, 0), new THREE.Vector3(-0.65, 0.3, -1.15), new THREE.Vector3(-1.55, 0.3, -1.1)];
-    const enemy_1 = new Enemy(
-      "enemy_1",
-      this.scene,
-      this.activeAction_1,
-      idle_1.scene,
-      new THREE.Vector3(-1.5, 0.3, 0),
-      new THREE.Color(0xabff3d),
-      wayPoints_1
-    );
-    this.enemies.push(enemy_1);
-    this.interactables.push(enemy_1.enemyMesh);
+    // mesh material
+    this.enemyMesh = this.enemyIdleScene.getObjectByName("enemy") as THREE.Mesh;
+    this.enemyMeshToonMaterial.map = this.enemyTexture;
+    this.enemyMesh.material = this.enemyMeshToonMaterial;
 
-    // enemy 2
-    this.mixer_2 = new THREE.AnimationMixer(idle_2.scene);
-    this.animationActions_2["idle_2"] = this.mixer_2.clipAction(idle_2.animations[0]);
-    this.activeAction_2 = this.animationActions_2["idle_2"];
-    const wayPoints_2 = [
-      new THREE.Vector3(1.15, 0.35, -1.5),
-      new THREE.Vector3(1.5, 0.85, -1.5),
-      new THREE.Vector3(2, 0.85, -1.5),
-      // new THREE.Vector3(2.5, 0.85, -1.5),
-    ];
-    const enemy_2 = new Enemy(
-      "enemy_2",
-      this.scene,
-      this.activeAction_2,
-      idle_2.scene,
-      new THREE.Vector3(0.5, 0.35, -1.5),
-      new THREE.Color(0xffff00),
-      wayPoints_2
-    );
-    this.enemies.push(enemy_2);
-    this.interactables.push(enemy_2.enemyMesh);
+    // mesh animation
+    this.mixer = new THREE.AnimationMixer(idle.scene);
+    this.animationActions["idle"] = this.mixer.clipAction(idle.animations[0]);
+    this.activeAction = this.animationActions["idle"];
 
-    // enemy 3
-    this.mixer_3 = new THREE.AnimationMixer(idle_3.scene);
-    this.animationActions_3["idle_3"] = this.mixer_3.clipAction(idle_3.animations[0]);
-    this.activeAction_3 = this.animationActions_3["idle_3"];
-    const wayPoints_3 = [new THREE.Vector3(-0.1, 0.5, -1.5)];
-    const enemy_3 = new Enemy(
-      "enemy_3",
-      this.scene,
-      this.activeAction_3,
-      idle_3.scene,
-      new THREE.Vector3(-0.1, 0.5, 0.45),
-      new THREE.Color(0xe397ff),
-      wayPoints_3
-    );
-    this.enemies.push(enemy_3);
-    this.interactables.push(enemy_3.enemyMesh);
+    this.enemyIdleScene.scale.multiplyScalar(scalar);
+    this.enemyIdleScene.position.set(this.originalEnemyPos.x, this.originalEnemyPos.y, this.originalEnemyPos.z);
+    this.startEnemyAnimation();
+    this.interactables.push(this.enemyMesh);
+    this.enemyStartRotation = this.enemyIdleScene.rotation;
+    //this.enemyIdleScene.rotateOnAxis(new THREE.Vector3(0, 1, 0), 0);
+    const axesHelper = new THREE.AxesHelper(2);
+    this.enemyIdleScene.add(axesHelper);
+    axesHelper.visible = true;
+    this.setDirection();
+    this.setRotation();
+  }
+
+  startEnemyAnimation() {
+    this.scene.add(this.enemyIdleScene);
+    this.activeAction.play();
+  }
+
+  createWayPoint(position: THREE.Vector3) {
+    const geometry = new THREE.SphereGeometry(0.05, 32, 16);
+    const material = new THREE.MeshToonMaterial({ color: 0xffff00 });
+    let wayPoint = new THREE.Mesh(geometry, material);
+    wayPoint.position.set(position.x, position.y, position.z);
+    this.scene.add(wayPoint);
+    const axesHelper = new THREE.AxesHelper(1);
+    wayPoint.add(axesHelper);
+    axesHelper.visible = true;
   }
 
   startNewScene() {
@@ -390,14 +364,35 @@ export default class Level_3 {
 
   // update loop
   updateLoop(delta: number, clock: THREE.Clock) {
-    if (!document.hidden) {
-      this.mixer_1.update(delta);
-      this.mixer_2.update(delta);
-      this.mixer_3.update(delta);
-      this.enemies.forEach((enemy) => {
-        enemy.updateLoop(delta, clock);
-      });
+    this.mixer.update(delta);
+
+    this.setDirection();
+    let newPos = this.direction.multiplyScalar(1 * delta);
+
+    // moving
+    this.enemyIdleScene.position.x += newPos.x;
+    this.enemyIdleScene.position.y += newPos.y;
+    this.enemyIdleScene.position.z += newPos.z;
+    if (this.enemyIdleScene.position.distanceTo(this.waypoints[this.currentWaypointIndex]) < 0.1) {
+      this.currentWaypointIndex = this.currentWaypointIndex < this.waypoints.length - 1 ? ++this.currentWaypointIndex : 0;
+      // rotates after updated position
+      this.setRotation();
     }
+  }
+
+  setDirection() {
+    let wayPointPos = this.waypoints[this.currentWaypointIndex].clone();
+    let newDirection = wayPointPos.sub(this.enemyIdleScene.position);
+    this.direction = (newDirection as unknown as THREE.Vector3).normalize();
+  }
+  setRotation() {
+    this.enemyIdleScene.lookAt(this.direction);
+    let rotationY = this.direction.y < 0 ? this.invertAngle(this.enemyIdleScene.rotation.y) : this.enemyIdleScene.rotation.y;
+    this.enemyIdleScene.rotation.set(0, rotationY, 0);
+  }
+
+  invertAngle(angle: number) {
+    return (angle + Math.PI) % (2 * Math.PI);
   }
 
   deactivateAllTexts() {}

@@ -344,6 +344,7 @@ export default class Level_3 {
     document.querySelector(".start")?.classList.remove("overlay-fade-out");
     setTimeout(this.startEvent, 1500);
   }
+
   startEvent = () => {
     this.deactivateAllTexts();
     document.dispatchEvent(this.event);

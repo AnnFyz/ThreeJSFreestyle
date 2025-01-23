@@ -1,5 +1,4 @@
 import * as THREE from "three";
-import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 
 export default class Enemy {
   name: string;
@@ -88,9 +87,7 @@ export default class Enemy {
     this.setRotation();
   }
 
-  handleDeath() {
-    console.log("IS DEAD");
-  }
+  handleDeath() {}
   setEnemyAnimation() {
     const scalar = 0.15;
     // mesh animation
@@ -106,7 +103,6 @@ export default class Enemy {
   startEnemyAnimation() {
     this.scene.add(this.enemyIdleScene);
     this.activeAction.play();
-    console.log("ENEMY PLAY");
   }
 
   setDirection() {
@@ -128,7 +124,7 @@ export default class Enemy {
     return (angle + Math.PI) % (2 * Math.PI);
   }
 
-  updateLoop(delta: number, clock: THREE.Clock) {
+  updateLoop(delta: number) {
     this.setDirection();
     let newPos = this.direction.multiplyScalar(0.5 * delta);
 
@@ -136,10 +132,9 @@ export default class Enemy {
     this.enemyIdleScene.position.x += newPos.x;
     this.enemyIdleScene.position.y += newPos.y;
     this.enemyIdleScene.position.z += newPos.z;
-    if (this.enemyIdleScene.position.distanceTo(this.waypoints[this.currentWaypointIndex]) < 0.025) {
+    if (this.enemyIdleScene.position.distanceTo(this.waypoints[this.currentWaypointIndex]) < 0.005) {
       if (this.currentWaypointIndex < this.waypoints.length - 1) {
         this.currentWaypointIndex++;
-        console.log(this.waypoints);
         this.waypoints.reverse();
       } else {
         this.currentWaypointIndex = 0;

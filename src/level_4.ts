@@ -3,6 +3,8 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { GUI } from "dat.gui";
 import Button from "./button";
+import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
+import { FontLoader } from "three/addons/loaders/FontLoader.js";
 //Modules to implement outline pass
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
 import { OutlinePass } from "three/examples/jsm/postprocessing/OutlinePass.js";
@@ -10,7 +12,6 @@ import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 //Modules below are regarded to shader
 import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
 import { FXAAShader } from "three/examples/jsm/shaders/FXAAShader.js";
-import { texture } from "three/webgpu";
 import Enemy from "./enemy";
 
 export default class Level_3 {
@@ -22,6 +23,11 @@ export default class Level_3 {
   mouse: THREE.Vector2;
   ambientLight: THREE.AmbientLight;
   pointLight: THREE.PointLight;
+
+  //Button
+  buttons: Button[] = [];
+  //stars
+  stars: THREE.Mesh[] = [];
   // enemy 1
   mixer_1 = new THREE.AnimationMixer(this.scene);
   animationActions_1: { [key: string]: THREE.AnimationAction } = {};
@@ -36,6 +42,9 @@ export default class Level_3 {
   mixer_3 = new THREE.AnimationMixer(this.scene);
   animationActions_3: { [key: string]: THREE.AnimationAction } = {};
   activeAction_3: THREE.AnimationAction = this.animationActions_1[""];
+
+  //
+  enemiesAmount = 0;
 
   enemyIdleScene: THREE.Group<THREE.Object3DEventMap>;
   enemyStartRotation: any;
@@ -197,14 +206,14 @@ export default class Level_3 {
 
   //here are set all button interactions
   createStar(position: THREE.Vector3) {
-    // texture for button as a platform
+    // texture for star
     const starTexture = new THREE.TextureLoader().load("scene_3/img/star/Star_base.png");
     starTexture.premultiplyAlpha = false;
     starTexture.magFilter = THREE.NearestFilter;
     starTexture.minFilter = THREE.NearestFilter;
     starTexture.flipY = false;
 
-    // create a platform
+    // create a star
     new GLTFLoader().load("scene_3/models/Star.glb", (gltf) => {
       const starMesh = gltf.scene.getObjectByName("Star") as THREE.Mesh;
       const material = new THREE.MeshToonMaterial({ color: 0xffff00 });
@@ -213,6 +222,7 @@ export default class Level_3 {
       starMesh.position.set(position.x, position.y + starMesh.scale.y / 4, position.z);
       starMesh.scale.setScalar(0.15);
       this.scene.add(starMesh);
+      this.stars.push(starMesh);
     });
   }
 
@@ -250,28 +260,41 @@ export default class Level_3 {
 
       // toggles `clicked` property for only the Pickable closest to the camera
       if (intersects.length) {
-        //checks the click's number
-        this.enemies.forEach((enemy) => {
-          if ((intersects[0].object as THREE.Mesh) == enemy.enemyMesh) {
-            enemy.handleDeath();
-            this.createStar(enemy.enemyIdleScene.position);
+        this.buttons.forEach((button) => {
+          if ((intersects[0].object as THREE.Mesh) === (button as THREE.Mesh)) {
+            button.clicked = !button.clicked;
+            this.createLinkToGame();
           }
         });
 
-        let object3D = intersects[0].object as THREE.Mesh;
-        // for better memory management and performance
-        if (object3D.geometry) object3D.geometry.dispose();
-        if (object3D.material) {
-          if (object3D.material instanceof Array) {
-            object3D.material.forEach((material) => material.dispose());
-          } else {
-            object3D.material.dispose();
+        //checks the click's number
+        this.enemies.forEach((enemy) => {
+          if ((intersects[0].object as THREE.Mesh) === enemy.enemyMesh) {
+            enemy.handleDeath();
+            this.createStar(enemy.enemyIdleScene.position);
+            this.destroyMesh(intersects[0].object as THREE.Mesh);
+            if (this.enemiesAmount > 1) {
+              this.enemiesAmount--;
+            } else {
+              this.createTextMesh("Play", 2, "Play", new THREE.Vector3(0, 2, 0), 0.1);
+            }
           }
-          console.log("dispose");
-          object3D.removeFromParent();
-        }
+        });
       }
     });
+  }
+
+  destroyMesh(object3D: THREE.Mesh) {
+    // for better memory management and performance
+    if (object3D.geometry) object3D.geometry.dispose();
+    if (object3D.material) {
+      if (object3D.material instanceof Array) {
+        object3D.material.forEach((material) => material.dispose());
+      } else {
+        object3D.material.dispose();
+      }
+      object3D.removeFromParent();
+    }
   }
 
   checkButtonInteractions() {
@@ -283,6 +306,55 @@ export default class Level_3 {
       this.currentMouseClickEvent = this.mouseClickEvent.None;
       this.startNewScene();
     }
+  }
+
+  createTextMesh(text: string, size: number, buttonName: string, position: THREE.Vector3, scale: number) {
+    let textGeo: TextGeometry;
+    //let textMesh = this.textMesh;
+    let activeScene = this.scene;
+    let interactables = this.interactables;
+    let buttons = this.buttons;
+    const loader = new FontLoader();
+    loader.load("fonts/Play_Regular.json", function (font) {
+      textGeo = new TextGeometry(text, {
+        font: font,
+        size: size,
+        height: 0.25,
+        curveSegments: 8,
+        bevelEnabled: true,
+        bevelThickness: 0.125,
+        bevelSize: 0.025,
+        bevelOffset: 0,
+        bevelSegments: 4,
+      });
+      textGeo.computeBoundingBox();
+      const textMesh = new THREE.Mesh(textGeo, new THREE.MeshToonMaterial({ color: 0x3f54ff }));
+      const textButton = new Button(
+        buttonName,
+        activeScene,
+        textMesh.geometry,
+        new THREE.MeshToonMaterial({ color: 0xffffff }),
+        new THREE.Color(0xeeeeee),
+        false,
+        false,
+        0.015,
+        true
+      );
+      interactables.push(textButton);
+      buttons.push(textButton);
+      textButton.setScale(scale, scale, scale);
+      textButton.setPosition(position.x, position.y, position.z);
+    });
+  }
+
+  createLinkToGame() {
+    console.log("createLinkToGame");
+    window.open("https://annfyz.itch.io/the-little-heros-big-adventure")?.addEventListener("click", function (event) {
+      event.stopPropagation();
+      event.preventDefault();
+
+      return false;
+    });
   }
   createPlatform() {
     const scalar = 0.22;
@@ -334,7 +406,7 @@ export default class Level_3 {
     );
     this.enemies.push(enemy_1);
     this.interactables.push(enemy_1.enemyMesh);
-
+    this.enemiesAmount++;
     // enemy 2
     this.mixer_2 = new THREE.AnimationMixer(idle_2.scene);
     this.animationActions_2["idle_2"] = this.mixer_2.clipAction(idle_2.animations[0]);
@@ -356,6 +428,7 @@ export default class Level_3 {
     );
     this.enemies.push(enemy_2);
     this.interactables.push(enemy_2.enemyMesh);
+    this.enemiesAmount++;
 
     // enemy 3
     this.mixer_3 = new THREE.AnimationMixer(idle_3.scene);
@@ -373,6 +446,7 @@ export default class Level_3 {
     );
     this.enemies.push(enemy_3);
     this.interactables.push(enemy_3.enemyMesh);
+    this.enemiesAmount++;
   }
 
   startNewScene() {
@@ -391,11 +465,20 @@ export default class Level_3 {
   // update loop
   updateLoop(delta: number, clock: THREE.Clock) {
     if (!document.hidden) {
+      this.buttons.forEach((p) => {
+        p.update(delta, clock);
+      });
+
       this.mixer_1.update(delta);
       this.mixer_2.update(delta);
       this.mixer_3.update(delta);
       this.enemies.forEach((enemy) => {
-        enemy.updateLoop(delta, clock);
+        enemy.updateLoop(delta);
+      });
+
+      this.stars.forEach((star) => {
+        star.rotation.y += 0.25 * delta;
+        star.rotation.z += 0.25 * delta;
       });
     }
   }

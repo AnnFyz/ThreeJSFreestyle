@@ -15,15 +15,9 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
+const controls = new OrbitControls(camera, renderer.domElement);
 
-// Scene setup
-const scenes = {
-  FirstScene: "FirstScene",
-  SecondScene: "SecondScene",
-  ThirdScene: "ThirdScene",
-  None: "None",
-};
-
+// levels setup
 const level_1 = new Level_1(camera, renderer, raycaster, mouse);
 const level_2 = new Level_2(camera, renderer, raycaster, mouse);
 const level_3 = new Level_3(camera, renderer, raycaster, mouse);
@@ -34,7 +28,7 @@ await level_4.loadAssync();
 
 // Scene setup
 const levels = [level_1, level_2, level_3, level_4];
-let currentLevelIndex = 3;
+let currentLevelIndex = 0;
 levels[currentLevelIndex].setupButtonInteractions();
 //let currentScene = scenes.ThirdScene;
 //let activeScene = level_3.scene;
@@ -43,7 +37,7 @@ document.onkeydown = function (e) {
   e = e || window.event;
   if (e.shiftKey) {
     levels[currentLevelIndex].deactivateAllTexts();
-    currentLevelIndex = currentLevelIndex < levels.length-1? ++currentLevelIndex : 0;
+    currentLevelIndex = currentLevelIndex < levels.length - 1 ? ++currentLevelIndex : 0;
     levels[currentLevelIndex].setupButtonInteractions();
     updateCamerandRenderer();
   }
@@ -51,7 +45,7 @@ document.onkeydown = function (e) {
 
 document.addEventListener("StartNewScene", () => {
   levels[currentLevelIndex].deactivateAllTexts();
-  currentLevelIndex = currentLevelIndex < levels.length-1? ++currentLevelIndex : 0;
+  currentLevelIndex = currentLevelIndex < levels.length - 1 ? ++currentLevelIndex : 0;
   levels[currentLevelIndex].setupButtonInteractions();
   updateCamerandRenderer();
 });
@@ -65,14 +59,16 @@ function updateCamerandRenderer() {
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
 
-    levels[currentLevelIndex].composer.setSize(window.innerWidth, window.innerHeight);
-    levels[currentLevelIndex].effectFXAA.uniforms["resolution"].value.set(1 / window.innerWidth, 1 / window.innerHeight);
+  levels[currentLevelIndex].composer.setSize(window.innerWidth, window.innerHeight);
+  levels[currentLevelIndex].effectFXAA.uniforms["resolution"].value.set(1 / window.innerWidth, 1 / window.innerHeight);
 }
 
-const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.target.set(0, 0.75, 0);
-controls.enableZoom = false;
+controls.enablePan = false;
+controls.enableZoom = true;
+controls.maxDistance = 9;
+controls.minDistance = 4;
 controls.autoRotate = true;
 controls.autoRotateSpeed = 0.1;
 controls.minPolarAngle = 0.8;

@@ -15,7 +15,6 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
-const controls = new OrbitControls(camera, renderer.domElement);
 
 // levels setup
 const level_1 = new Level_1(camera, renderer, raycaster, mouse);
@@ -30,34 +29,13 @@ await level_4.loadAssync();
 const levels = [level_1, level_2, level_3, level_4];
 let currentLevelIndex = 0;
 levels[currentLevelIndex].setupButtonInteractions();
-//let currentScene = scenes.ThirdScene;
-//let activeScene = level_3.scene;
 
-document.onkeydown = function (e) {
-  e = e || window.event;
-  if (e.shiftKey) {
-    levels[currentLevelIndex].deactivateAllTexts();
-    currentLevelIndex = currentLevelIndex < levels.length - 1 ? ++currentLevelIndex : 0;
-    levels[currentLevelIndex].setupButtonInteractions();
-    updateCamerandRenderer();
-  }
-};
-
+//in level 1,2,3 at the end  will be dispanched "StartNewScene"event
 document.addEventListener("StartNewScene", (event) => {
   levels[currentLevelIndex].deactivateAllTexts();
   currentLevelIndex = currentLevelIndex < levels.length - 1 ? ++currentLevelIndex : 0;
   levels[currentLevelIndex].setupButtonInteractions();
   updateCamerandRenderer();
-});
-
-//didn't work
-document.addEventListener("visibilitychange", function (event) {
-  console.log(`Your page is  ${document.visibilityState}`);
-  if (document.visibilityState == "visible") {
-    controls.enabled = true;
-  } else {
-    controls.enabled = false;
-  }
 });
 
 window.addEventListener("resize", () => {
@@ -73,6 +51,8 @@ function updateCamerandRenderer() {
   levels[currentLevelIndex].effectFXAA.uniforms["resolution"].value.set(1 / window.innerWidth, 1 / window.innerHeight);
 }
 
+// controls setup
+const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.target.set(0, 0.75, 0);
 controls.enablePan = false;
@@ -91,7 +71,6 @@ const clock = new THREE.Clock();
 let delta = 0;
 
 function animate() {
-  // if (!document.hidden) {
   requestAnimationFrame(animate);
 
   delta = clock.getDelta();
@@ -103,7 +82,6 @@ function animate() {
 
   controls.update();
   stats.update();
-  // }
 }
 
 

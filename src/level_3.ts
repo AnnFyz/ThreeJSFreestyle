@@ -110,7 +110,6 @@ export default class Level_3 {
     this.outlinePass.pulsePeriod = 0;
     this.outlinePass.usePatternTexture = false; // patter texture for an object mesh
     this.outlinePass.visibleEdgeColor.set("#ffffff"); // set basic edge color
-    //this.outlinePass.hiddenEdgeColor.set("#1abaff"); // set edge color when it hidden by other object
 
     this.composer.addPass(this.outlinePass);
     this.effectFXAA.renderToScreen = true;

@@ -149,11 +149,10 @@ export default class Level_2 {
       transparent: true,
     });
 
-    // Create the sprite
+    // creates aa sprite
     const sprite = new THREE.Sprite(spriteMaterial);
     sprite.position.set(0, 2, -2);
     sprite.scale.set(2.2, 1.25, 1);
-    // Add the sprite to your scene, etc.
     this.scene.add(sprite);
   }
 
@@ -177,8 +176,6 @@ export default class Level_2 {
     this.outlinePass.pulsePeriod = 0;
     this.outlinePass.usePatternTexture = false; // patter texture for an object mesh
     this.outlinePass.visibleEdgeColor.set("#ffffff"); // set basic edge color
-    //this.outlinePass.hiddenEdgeColor.set("#1abaff"); // set edge color when it hidden by other object
-
     this.composer.addPass(this.outlinePass);
     this.effectFXAA.renderToScreen = true;
     this.composer.addPass(this.effectFXAA);
@@ -205,7 +202,6 @@ export default class Level_2 {
     });
 
     const outline = new THREE.Mesh(geometry, this.outlineMaterial);
-    //outline.scale.addScalar(1);
     this.scene.add(outline);
   };
 

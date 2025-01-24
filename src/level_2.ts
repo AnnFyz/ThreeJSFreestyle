@@ -391,7 +391,7 @@ export default class Level_2 {
   updateLoop(delta: number, clock: THREE.Clock) {
     this.buttons.forEach((p) => {
       p.update(delta, clock);
-      p.position.y = Math.sin(clock.getElapsedTime()) * 0.1 + p.defaultPosition.y;
+      p.position.y = Math.sin(clock.getElapsedTime()) * 0.01 + p.defaultPosition.y;
     });
   }
 }

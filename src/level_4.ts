@@ -282,7 +282,9 @@ export default class Level_3 {
               this.enemiesAmount--;
             } else {
               this.createTextMesh("Play", 2, "Play", new THREE.Vector3(0, 2, 0), 0.1);
-              document.querySelector(".level_1")?.classList.remove("hidden");
+              document.querySelector(".first")?.classList.remove("hidden");
+              document.querySelector(".first")?.classList.remove("fade-out");
+              document.querySelector(".first")?.classList.add("fade-in-slide");
             }
           }
         });

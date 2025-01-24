@@ -1,4 +1,9 @@
 # ThreeJSFreestyle
+## Build
+https://annfyz.github.io/ThreeJSFreestyle-Page/
+## GitHub
+* TypeScript Project: https://github.com/AnnFyz/ThreeJSFreestyle
+* JaveScript Deployed Project: https://github.com/AnnFyz/ThreeJSFreestyle-Page
 ## Project concept
 A website created as an introduction to the VR game, integrating interactive 3D elements.
 ## Project architecture 

@@ -270,7 +270,7 @@ export default class Level_2 {
         buttonName,
         activeScene,
         textMesh.geometry,
-        new THREE.MeshToonMaterial({ color: 0xffffff }),
+        new THREE.MeshToonMaterial({ color: 0xeae3c4 }),
         new THREE.Color(0xeeeeee),
         false,
         false,
@@ -391,6 +391,7 @@ export default class Level_2 {
   updateLoop(delta: number, clock: THREE.Clock) {
     this.buttons.forEach((p) => {
       p.update(delta, clock);
+      p.position.y = Math.sin(clock.getElapsedTime()) * 0.1 + p.defaultPosition.y;
     });
   }
 }

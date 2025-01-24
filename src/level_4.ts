@@ -282,6 +282,7 @@ export default class Level_3 {
               this.enemiesAmount--;
             } else {
               this.createTextMesh("Play", 2, "Play", new THREE.Vector3(0, 2, 0), 0.1);
+              document.querySelector(".level_1")?.classList.remove("hidden");
             }
           }
         });
@@ -338,7 +339,7 @@ export default class Level_3 {
         buttonName,
         activeScene,
         textMesh.geometry,
-        new THREE.MeshToonMaterial({ color: 0xffffff }),
+        new THREE.MeshToonMaterial({ color: 0xd0cfd3 }),
         new THREE.Color(0xeeeeee),
         false,
         false,

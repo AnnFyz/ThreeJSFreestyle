@@ -43,11 +43,21 @@ document.onkeydown = function (e) {
   }
 };
 
-document.addEventListener("StartNewScene", () => {
+document.addEventListener("StartNewScene", (event) => {
   levels[currentLevelIndex].deactivateAllTexts();
   currentLevelIndex = currentLevelIndex < levels.length - 1 ? ++currentLevelIndex : 0;
   levels[currentLevelIndex].setupButtonInteractions();
   updateCamerandRenderer();
+});
+
+//didn't work
+document.addEventListener("visibilitychange", function (event) {
+  console.log(`Your page is  ${document.visibilityState}`);
+  if (document.visibilityState == "visible") {
+    controls.enabled = true;
+  } else {
+    controls.enabled = false;
+  }
 });
 
 window.addEventListener("resize", () => {

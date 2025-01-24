@@ -172,5 +172,6 @@ export default class Button extends THREE.Mesh {
       new THREE.Vector3(this.v.x * this.defaultScale.x, this.v.y * this.defaultScale.y, this.v.z * this.defaultScale.z),
       delta * 5
     );
+    //this.wireframe.position.y = Math.sin(clock.getElapsedTime()) * 0.05 + this.defaultPosition.y;
   }
 }

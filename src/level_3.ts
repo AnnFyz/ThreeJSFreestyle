@@ -361,6 +361,7 @@ export default class Level_3 {
     this.mixer.update(delta);
     this.starButton.rotation.y += 0.25 * delta;
     this.starButton.rotation.z += 0.25 * delta;
+    this.idleScene.position.y = Math.sin(clock.getElapsedTime()) * 0.1;
   }
 
   deactivateAllTexts() {

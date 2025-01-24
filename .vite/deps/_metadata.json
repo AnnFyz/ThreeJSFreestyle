@@ -1,0 +1,100 @@
+{
+  "hash": "5088b3c2",
+  "configHash": "b51e72de",
+  "lockfileHash": "75defcb1",
+  "browserHash": "993e8889",
+  "optimized": {
+    "three": {
+      "src": "../../node_modules/three/build/three.module.js",
+      "file": "three.js",
+      "fileHash": "40d9d0d3",
+      "needsInterop": false
+    },
+    "three/addons/controls/OrbitControls.js": {
+      "src": "../../node_modules/three/examples/jsm/controls/OrbitControls.js",
+      "file": "three_addons_controls_OrbitControls__js.js",
+      "fileHash": "9dacd855",
+      "needsInterop": false
+    },
+    "three/addons/libs/stats.module.js": {
+      "src": "../../node_modules/three/examples/jsm/libs/stats.module.js",
+      "file": "three_addons_libs_stats__module__js.js",
+      "fileHash": "3c94959e",
+      "needsInterop": false
+    },
+    "three/addons/loaders/GLTFLoader.js": {
+      "src": "../../node_modules/three/examples/jsm/loaders/GLTFLoader.js",
+      "file": "three_addons_loaders_GLTFLoader__js.js",
+      "fileHash": "0277333e",
+      "needsInterop": false
+    },
+    "three/addons/loaders/RGBELoader.js": {
+      "src": "../../node_modules/three/examples/jsm/loaders/RGBELoader.js",
+      "file": "three_addons_loaders_RGBELoader__js.js",
+      "fileHash": "6585c728",
+      "needsInterop": false
+    },
+    "dat.gui": {
+      "src": "../../node_modules/dat.gui/build/dat.gui.module.js",
+      "file": "dat__gui.js",
+      "fileHash": "6e39c61f",
+      "needsInterop": false
+    },
+    "three/examples/jsm/postprocessing/EffectComposer.js": {
+      "src": "../../node_modules/three/examples/jsm/postprocessing/EffectComposer.js",
+      "file": "three_examples_jsm_postprocessing_EffectComposer__js.js",
+      "fileHash": "af0175a4",
+      "needsInterop": false
+    },
+    "three/examples/jsm/postprocessing/OutlinePass.js": {
+      "src": "../../node_modules/three/examples/jsm/postprocessing/OutlinePass.js",
+      "file": "three_examples_jsm_postprocessing_OutlinePass__js.js",
+      "fileHash": "50b4906b",
+      "needsInterop": false
+    },
+    "three/examples/jsm/postprocessing/RenderPass.js": {
+      "src": "../../node_modules/three/examples/jsm/postprocessing/RenderPass.js",
+      "file": "three_examples_jsm_postprocessing_RenderPass__js.js",
+      "fileHash": "491d105b",
+      "needsInterop": false
+    },
+    "three/examples/jsm/postprocessing/ShaderPass.js": {
+      "src": "../../node_modules/three/examples/jsm/postprocessing/ShaderPass.js",
+      "file": "three_examples_jsm_postprocessing_ShaderPass__js.js",
+      "fileHash": "5b58b674",
+      "needsInterop": false
+    },
+    "three/examples/jsm/shaders/FXAAShader.js": {
+      "src": "../../node_modules/three/examples/jsm/shaders/FXAAShader.js",
+      "file": "three_examples_jsm_shaders_FXAAShader__js.js",
+      "fileHash": "e19dc81b",
+      "needsInterop": false
+    },
+    "three/addons/geometries/TextGeometry.js": {
+      "src": "../../node_modules/three/examples/jsm/geometries/TextGeometry.js",
+      "file": "three_addons_geometries_TextGeometry__js.js",
+      "fileHash": "46ae4e48",
+      "needsInterop": false
+    },
+    "three/addons/loaders/FontLoader.js": {
+      "src": "../../node_modules/three/examples/jsm/loaders/FontLoader.js",
+      "file": "three_addons_loaders_FontLoader__js.js",
+      "fileHash": "49ecc2db",
+      "needsInterop": false
+    }
+  },
+  "chunks": {
+    "chunk-YZ7RHIIL": {
+      "file": "chunk-YZ7RHIIL.js"
+    },
+    "chunk-5CCEGZUF": {
+      "file": "chunk-5CCEGZUF.js"
+    },
+    "chunk-6ND65Z63": {
+      "file": "chunk-6ND65Z63.js"
+    },
+    "chunk-7ZCAHXB5": {
+      "file": "chunk-7ZCAHXB5.js"
+    }
+  }
+}

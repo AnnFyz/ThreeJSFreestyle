@@ -18,7 +18,7 @@ The project follows a linear progression of click events, eventually leading to 
 * Outline Shader: https://www.youtube.com/watch?v=V5UllFImvoE&ab_channel=Visionary3D
 * Procedural Text Geometry : https://threejs.org/docs/#manual/en/introduction/Creating-text
 * Vector mathematics for guiding enemies along waypoints while ensuring they rotate to face the correct direction:
-** https://discussions.unity.com/t/how-to-calculate-direction-between-2-objects/103715
-** https://discourse.threejs.org/t/check-if-positions-are-behind-object/35451
-** https://stackoverflow.com/questions/2263762/flipping-an-angle-using-radians
+- https://discussions.unity.com/t/how-to-calculate-direction-between-2-objects/103715
+- https://discourse.threejs.org/t/check-if-positions-are-behind-object/35451
+- https://stackoverflow.com/questions/2263762/flipping-an-angle-using-radians
  
